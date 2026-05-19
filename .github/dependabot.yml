@@ -2,6 +2,7 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/frontend"
+    open-pull-requests-limit: 3
     schedule:
       interval: "weekly"
       day: "monday"
@@ -15,9 +16,14 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
 
   - package-ecosystem: "pip"
     directory: "/"
+    open-pull-requests-limit: 3
     schedule:
       interval: "weekly"
       day: "monday"
@@ -31,9 +37,14 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
 
   - package-ecosystem: "github-actions"
     directory: "/"
+    open-pull-requests-limit: 3
     schedule:
       interval: "weekly"
       day: "monday"
@@ -42,3 +53,7 @@ updates:
     labels:
       - "dependencies"
       - "automated"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
