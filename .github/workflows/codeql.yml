@@ -24,7 +24,7 @@ jobs:
         language: ["python", "javascript-typescript"]
     steps:
       - name: Checkout
-        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - name: Initialize CodeQL
         uses: github/codeql-action/init@7c1e4cf0b20d7c1872b26569c00ba908797a59bf
         with:
