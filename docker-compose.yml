@@ -1,0 +1,10 @@
+services:
+  polaris-console:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      POLARIS_CONSOLE_SESSION_SECRET: "change-me-at-least-32-bytes-for-local-dev"
+      POLARIS_CONSOLE_ALLOWED_ORIGINS: "http://localhost:8000"
+      POLARIS_CONSOLE_COOKIE_SECURE: "false"
+      POLARIS_CONSOLE_ALLOW_INSECURE_TLS: "false"

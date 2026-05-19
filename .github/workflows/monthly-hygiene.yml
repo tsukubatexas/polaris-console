@@ -1,0 +1,25 @@
+name: monthly hygiene
+
+on:
+  schedule:
+    - cron: "41 4 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      STALE_AGENTIC_PR_DAYS: "30"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+      - name: Close stale agentic PRs
+        run: scripts/pr_hygiene.sh
+      - name: Check workflow pinning
+        run: scripts/check_actions_pinned.sh

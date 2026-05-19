@@ -1,0 +1,9 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "package-name": "polaris-console",
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}
