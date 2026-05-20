@@ -18,7 +18,7 @@ if helm template polaris-console "$chart_dir" >"$render_dir/default.yaml" 2>"$re
   printf 'Default Helm render unexpectedly succeeded without allowed target hosts.\n' >&2
   exit 1
 fi
-rg -q "allowedTargetHosts" "$render_dir/default.err"
+grep -q "allowedTargetHosts" "$render_dir/default.err"
 
 helm lint "$chart_dir" -f "$secure_values"
 helm template polaris-console "$chart_dir" \
@@ -31,14 +31,14 @@ helm template polaris-console-dev "$chart_dir" \
   -f "$chart_dir/values-dev.yaml" \
   >"$render_dir/dev.yaml"
 
-rg -q "runAsNonRoot: true" "$render_dir/secure.yaml"
-rg -q "allowPrivilegeEscalation: false" "$render_dir/secure.yaml"
-rg -q "readOnlyRootFilesystem: true" "$render_dir/secure.yaml"
-rg -q "POLARIS_CONSOLE_COOKIE_SECURE" "$render_dir/secure.yaml"
-rg -q 'value: "true"' "$render_dir/secure.yaml"
-rg -q "POLARIS_CONSOLE_ALLOWED_TARGET_HOSTS" "$render_dir/secure.yaml"
-rg -q "polaris.example.com,login.microsoftonline.com" "$render_dir/secure.yaml"
-rg -q "kind: NetworkPolicy" "$render_dir/secure.yaml"
+grep -q "runAsNonRoot: true" "$render_dir/secure.yaml"
+grep -q "allowPrivilegeEscalation: false" "$render_dir/secure.yaml"
+grep -q "readOnlyRootFilesystem: true" "$render_dir/secure.yaml"
+grep -q "POLARIS_CONSOLE_COOKIE_SECURE" "$render_dir/secure.yaml"
+grep -q 'value: "true"' "$render_dir/secure.yaml"
+grep -q "POLARIS_CONSOLE_ALLOWED_TARGET_HOSTS" "$render_dir/secure.yaml"
+grep -q "polaris.example.com,login.microsoftonline.com" "$render_dir/secure.yaml"
+grep -q "kind: NetworkPolicy" "$render_dir/secure.yaml"
 
 helm package "$chart_dir" --destination "$package_dir"
 helm repo index "$package_dir" --url "https://raw.githubusercontent.com/tsukubatexas/polaris-console/gh-pages/charts"
