@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/tsukubatexas/polaris-console/compare/polaris-console-v0.2.0...polaris-console-v0.2.1) (2026-05-20)
+
+
+### Bug Fixes
+
+* keep generated Polaris operation IDs unique ([2c115c6](https://github.com/tsukubatexas/polaris-console/commit/2c115c673701c225d02fb9a98004cdfec19a5a21))
+
 ## [0.2.0](https://github.com/tsukubatexas/polaris-console/compare/polaris-console-v0.1.0...polaris-console-v0.2.0) (2026-05-19)
 
 
