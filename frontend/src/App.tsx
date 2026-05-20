@@ -384,6 +384,7 @@ export function App() {
                   catalogError={catalogError}
                   onRefresh={refreshCatalogs}
                   setView={setView}
+                  setActiveCatalog={setActiveCatalog}
                 />
               )}
 
@@ -606,11 +607,10 @@ function PolarisTree({
 function Overview({
   session,
   catalogs,
-  summary,
-  activity,
   catalogError,
   onRefresh,
-  setView
+  setView,
+  setActiveCatalog
 }: {
   session: PolarisSession;
   catalogs: Catalog[];
@@ -624,74 +624,157 @@ function Overview({
   catalogError: string | null;
   onRefresh: () => void;
   setView: (view: View) => void;
+  setActiveCatalog: (name: string) => void;
 }) {
-  const last = activity[0];
+  function go(view: View, catalogName?: string) {
+    if (catalogName) setActiveCatalog(catalogName);
+    setView(view);
+  }
+
   return (
     <div className="overview-grid">
-      <section className="core-grid">
-        {[
-          { title: "Catalogs", icon: Database, view: "catalogs" as View, detail: "Storage and catalog roles" },
-          { title: "RBAC", icon: UsersRound, view: "identity" as View, detail: "Principals, roles and grants" },
-          { title: "Namespaces & Tables", icon: Table2, view: "lakehouse" as View, detail: "Iceberg namespaces and tables" },
-          { title: "API Explorer", icon: SquareTerminal, view: "explorer" as View, detail: "Expert fallback" }
-        ].map((card) => {
-          const Icon = card.icon;
-          return (
-            <button key={card.title} className="core-card" onClick={() => setView(card.view)}>
-              <Icon size={24} />
-              <strong>{card.title}</strong>
-              <span>{card.detail}</span>
+      <section className="overview-tree panel">
+        <div className="section-title">
+          <div>
+            <h3>Polaris Map</h3>
+            <span>Tree view of where objects live and where RBAC is assigned</span>
+          </div>
+          <button onClick={onRefresh} disabled={!session.connected}>
+            <RefreshCw size={16} /> Refresh
+          </button>
+        </div>
+        {catalogError && <div className="notice notice-error">{catalogError}</div>}
+
+        <details className="hierarchy-realm" open>
+          <summary>
+            <Network size={17} />
+            <span>
+              <strong>Realm: {session.realm || "POLARIS"}</strong>
+              <small>Authentication boundary · {session.connected ? session.auth_mode : "disconnected"}</small>
+            </span>
+          </summary>
+          <div className="overview-tree-body">
+            <button className="overview-node" onClick={() => go("catalogs")}>
+              <Database size={16} />
+              <span>
+                <strong>Catalogs live under the realm</strong>
+                <small>Storage roots and Catalog Roles</small>
+              </span>
             </button>
-          );
-        })}
-      </section>
-
-      <section className="metric-row">
-        <Metric label="Catalogs" value={catalogs.length} />
-        <Metric label="RBAC Ops" value={summary.services.management ?? 0} />
-        <Metric label="Table Ops" value={(summary.services.catalog ?? 0) + (summary.services.iceberg ?? 0)} />
-        <Metric label="Mutating Ops" value={summary.mutating} />
-      </section>
-
-      <section className="console-grid">
-        <div className="panel span-2">
-          <div className="section-title">
-            <div>
-              <h3>Catalogs</h3>
-              <span>{session.connected ? "Live from Polaris" : "No active Polaris session"}</span>
-            </div>
-            <button onClick={onRefresh} disabled={!session.connected}>
-              <RefreshCw size={16} /> Refresh
+            <button className="overview-node" onClick={() => go("identity")}>
+              <UsersRound size={16} />
+              <span>
+                <strong>RBAC controls access to those objects</strong>
+                <small>Principals, Principal Roles, Catalog Roles, Grants</small>
+              </span>
             </button>
           </div>
-          {catalogError && <div className="notice notice-error">{catalogError}</div>}
-          <div className="catalog-strip">
+        </details>
+
+        <details className="hierarchy-catalogs" open>
+          <summary>
+            <Database size={17} />
+            <span>
+              <strong>Realm to Catalogs</strong>
+              <small>{catalogs.length} catalogs loaded</small>
+            </span>
+          </summary>
+          <div className="overview-tree-body">
             {catalogs.map((catalog) => (
-              <button key={catalog.name} onClick={() => setView("catalogs")}>
-                <Database size={18} />
-                <strong>{catalog.name}</strong>
-                <span>{catalog.properties?.["default-base-location"] ?? catalog.type ?? "catalog"}</span>
-              </button>
+              <div className="overview-branch" key={catalog.name}>
+                <button className="overview-node" onClick={() => go("catalogs", catalog.name)}>
+                  <Database size={16} />
+                  <span>
+                    <strong>Catalog: {catalog.name}</strong>
+                    <small>{catalog.properties?.["default-base-location"] ?? catalog.type ?? "catalog"}</small>
+                  </span>
+                </button>
+                <div className="overview-level-label">Inside this catalog</div>
+                <div className="overview-leaves">
+                  <button onClick={() => go("catalogs", catalog.name)}>
+                    <ShieldCheck size={14} />
+                    <span>Storage Config</span>
+                  </button>
+                  <button onClick={() => go("catalogs", catalog.name)}>
+                    <KeyRound size={14} />
+                    <span>Catalog Roles</span>
+                  </button>
+                  <button onClick={() => go("lakehouse", catalog.name)}>
+                    <FolderTree size={14} />
+                    <span>Namespaces</span>
+                  </button>
+                  <button onClick={() => go("lakehouse", catalog.name)}>
+                    <Table2 size={14} />
+                    <span>Tables in Namespaces</span>
+                  </button>
+                </div>
+              </div>
             ))}
             {catalogs.length === 0 && <EmptyState label="No catalogs loaded" />}
           </div>
-        </div>
+        </details>
 
-        <div className="panel">
-          <div className="section-title">
-            <div>
-              <h3>Last Change</h3>
-              <span>{last ? `${last.operation.id} · ${last.status_code}` : "No activity yet"}</span>
-            </div>
+        <details className="hierarchy-rbac" open>
+          <summary>
+            <UsersRound size={17} />
+            <span>
+              <strong>RBAC access path</strong>
+              <small>Who gets what on which catalog object</small>
+            </span>
+          </summary>
+          <div className="rbac-chain" aria-label="Polaris RBAC chain">
+            {[
+              ["1. Principal", "User or app identity"],
+              ["2. Principal Role", "Role assigned to the principal"],
+              ["3. Catalog Role", "Role scoped inside one catalog"],
+              ["4. Privilege Grant", "Catalog, namespace, or table privilege"]
+            ].map(([title, detail]) => (
+              <button key={title} onClick={() => go("identity")}>
+                <strong>{title}</strong>
+                <small>{detail}</small>
+              </button>
+            ))}
           </div>
-          {last ? (
-            <pre className={last.ok ? "mini-response" : "mini-response mini-response-error"}>
-              {JSON.stringify(last.body, null, 2)}
-            </pre>
-          ) : (
-            <EmptyState label="No changes yet" />
-          )}
-        </div>
+        </details>
+
+        <details>
+          <summary>
+            <Plus size={17} />
+            <span>
+              <strong>Create & Grant Workflows</strong>
+              <small>Common DBA actions</small>
+            </span>
+          </summary>
+          <div className="overview-actions">
+            <button onClick={() => go("catalogs")}>
+              <Plus size={15} /> Create Catalog
+            </button>
+            <button onClick={() => go("lakehouse", catalogs[0]?.name)}>
+              <Plus size={15} /> Create Namespace
+            </button>
+            <button onClick={() => go("lakehouse", catalogs[0]?.name)}>
+              <Plus size={15} /> Create Table
+            </button>
+            <button onClick={() => go("identity")}>
+              <ShieldCheck size={15} /> Grant RBAC
+            </button>
+          </div>
+        </details>
+      </section>
+
+      <section className="overview-footer-actions">
+        <button onClick={() => go("catalogs")}>
+          <Database size={16} />
+          <span>Manage Catalogs</span>
+        </button>
+        <button onClick={() => go("lakehouse", catalogs[0]?.name)}>
+          <Table2 size={16} />
+          <span>Manage Namespaces & Tables</span>
+        </button>
+        <button onClick={() => go("identity")}>
+          <UsersRound size={16} />
+          <span>Manage RBAC</span>
+        </button>
       </section>
     </div>
   );
@@ -1548,15 +1631,6 @@ function LakehouseView({
           {tables.length === 0 && <EmptyState label="No tables" />}
         </div>
       </section>
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="metric">
-      <span>{label}</span>
-      <strong>{value}</strong>
     </div>
   );
 }

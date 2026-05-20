@@ -449,6 +449,254 @@ nav button.nav-active {
   -webkit-line-clamp: 2;
 }
 
+.overview-tree {
+  display: grid;
+  gap: 10px;
+}
+
+.overview-tree details {
+  position: relative;
+  border: 1px solid #e0e6ed;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.overview-tree summary {
+  display: grid;
+  min-height: 48px;
+  cursor: pointer;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  color: #243144;
+  padding: 10px 12px;
+  list-style: none;
+}
+
+.overview-tree summary::-webkit-details-marker {
+  display: none;
+}
+
+.overview-tree summary strong,
+.overview-tree summary small,
+.overview-node strong,
+.overview-node small {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-tree summary small,
+.overview-node small {
+  margin-top: 2px;
+  color: #667084;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.overview-tree-body {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid #e8edf2;
+  padding: 10px 12px 12px 34px;
+}
+
+.overview-tree-body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 12px;
+  left: 22px;
+  width: 1px;
+  background: #d8e3ea;
+}
+
+.overview-branch {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  border-left: 1px solid #cbdbe4;
+  padding-left: 12px;
+}
+
+.overview-branch::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: -1px;
+  width: 12px;
+  height: 1px;
+  background: #cbdbe4;
+}
+
+.overview-node,
+.overview-leaves button,
+.overview-actions button,
+.rbac-chain button {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  cursor: pointer;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  border-radius: 8px;
+  background: #f9fbfb;
+  color: #334155;
+  padding: 10px;
+  text-align: left;
+}
+
+.overview-node {
+  position: relative;
+}
+
+.overview-node::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -12px;
+  width: 12px;
+  height: 1px;
+  background: #d8e3ea;
+}
+
+.overview-node:hover,
+.overview-leaves button:hover,
+.overview-actions button:hover,
+.rbac-chain button:hover {
+  background: #eef6f5;
+}
+
+.overview-leaves {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding-left: 24px;
+}
+
+.overview-leaves::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  bottom: 12px;
+  left: 11px;
+  width: 1px;
+  background: #d8e3ea;
+}
+
+.overview-leaves button,
+.overview-actions button {
+  min-height: 34px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  background: transparent;
+  padding: 7px 8px;
+  font-size: 12px;
+}
+
+.overview-leaves button {
+  position: relative;
+}
+
+.overview-leaves button::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -13px;
+  width: 13px;
+  height: 1px;
+  background: #d8e3ea;
+}
+
+.overview-leaves span,
+.overview-actions span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-level-label {
+  color: #667084;
+  font-size: 11px;
+  font-weight: 800;
+  padding-left: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0;
+}
+
+.rbac-chain {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  border-top: 1px solid #e8edf2;
+  padding: 10px 12px 12px;
+}
+
+.rbac-chain button {
+  position: relative;
+  grid-template-columns: 1fr;
+}
+
+.rbac-chain button:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: -8px;
+  width: 8px;
+  height: 1px;
+  background: #9fc7c5;
+}
+
+.rbac-chain button:not(:last-child)::before {
+  content: ">";
+  position: absolute;
+  top: calc(50% - 9px);
+  right: -13px;
+  color: #5f908d;
+  font-size: 14px;
+  font-weight: 900;
+  z-index: 1;
+}
+
+.overview-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  border-top: 1px solid #e8edf2;
+  padding: 10px 12px 12px;
+}
+
+.overview-footer-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.overview-footer-actions button {
+  display: inline-flex;
+  min-height: 42px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #cfdbe4;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  padding: 0 12px;
+  font-weight: 750;
+}
+
+.overview-footer-actions button:hover {
+  border-color: #9fc7c5;
+  background: #f0f8f7;
+}
+
 .console-grid {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
@@ -1287,6 +1535,18 @@ nav button.nav-active {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .overview-leaves,
+  .overview-actions,
+  .rbac-chain,
+  .overview-footer-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rbac-chain button::before,
+  .rbac-chain button::after {
+    display: none;
+  }
+
   .console-grid,
   .hierarchy-shell,
   .domain-layout,
@@ -1375,7 +1635,11 @@ nav button.nav-active {
   .inline-form,
   .inline-form.one-line,
   .table-toolbar,
-  .grant-grid {
+  .grant-grid,
+  .overview-leaves,
+  .overview-actions,
+  .rbac-chain,
+  .overview-footer-actions {
     grid-template-columns: 1fr;
   }
 
