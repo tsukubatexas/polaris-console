@@ -159,10 +159,21 @@ Chart security defaults:
 - Drops all Linux capabilities and uses `RuntimeDefault` seccomp.
 - Uses read-only root filesystem with an explicit `/tmp` `emptyDir`.
 - Creates or reuses a Kubernetes Secret for the backend session secret.
+- Supports AWS IRSA, AWS EKS Pod Identity, Azure Workload Identity, and GKE Workload Identity Federation without storing cloud credentials in the chart.
+- Kubernetes RBAC is opt-in and empty by default; enable it only with explicit least-privilege rules.
 - Sets `POLARIS_CONSOLE_COOKIE_SECURE=true` by default.
 - Requires `POLARIS_CONSOLE_ALLOWED_TARGET_HOSTS` unless local development mode is explicit.
 - Enables a NetworkPolicy by default; production deployments should add explicit egress rules for Polaris, OAuth, DNS, and observability endpoints.
 - Ships a Helm `values.schema.json` so invalid values fail early.
+
+Cloud identity examples:
+
+```bash
+helm template polaris-console charts/polaris-console -f charts/polaris-console/examples/values-aws-irsa.yaml
+helm template polaris-console charts/polaris-console -f charts/polaris-console/examples/values-aws-pod-identity.yaml
+helm template polaris-console charts/polaris-console -f charts/polaris-console/examples/values-azure-workload-identity.yaml
+helm template polaris-console charts/polaris-console -f charts/polaris-console/examples/values-gcp-workload-identity.yaml
+```
 
 ## Security Posture
 

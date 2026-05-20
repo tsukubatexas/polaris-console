@@ -15,6 +15,47 @@ serviceAccount:
   annotations: {}
   name: ""
 
+rbac:
+  create: false
+  rules: []
+
+cloud:
+  # Supported values: none, aws, azure, gcp.
+  # The chart renders cloud-native workload identity metadata only. The cloud IAM
+  # role binding/federated credential itself must be created outside Helm with
+  # least privilege to the exact Polaris/OAuth/secret resources the console needs.
+  provider: none
+  aws:
+    irsa:
+      enabled: false
+      roleArn: ""
+      audience: ""
+      stsRegionalEndpoints: true
+      tokenExpirationSeconds: 86400
+    podIdentity:
+      # EKS Pod Identity associations are created with AWS APIs and reference
+      # this release's service account name/namespace. Helm keeps that KSA stable.
+      enabled: false
+  azure:
+    workloadIdentity:
+      enabled: false
+      clientId: ""
+      tenantId: ""
+      serviceAccountTokenExpirationSeconds: 3600
+      injectProxySidecar: false
+      proxySidecarPort: 8000
+      skipContainers: []
+  gcp:
+    workloadIdentity:
+      enabled: false
+      # direct = grant IAM roles directly to the Kubernetes ServiceAccount
+      # serviceAccountImpersonation = annotate the KSA to impersonate this GSA.
+      mode: direct
+      serviceAccountEmail: ""
+      returnPrincipalIdAsEmail: true
+      credentialQuotaProject: ""
+
+podLabels: {}
 podAnnotations: {}
 
 podSecurityContext:

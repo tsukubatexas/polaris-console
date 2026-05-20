@@ -15,9 +15,21 @@ spec:
     metadata:
       labels:
         {{- include "polaris-console.selectorLabels" . | nindent 8 }}
-      {{- with .Values.podAnnotations }}
-      annotations:
+        {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with include "polaris-console.cloudPodLabels" . }}
+        {{- . | nindent 8 }}
+        {{- end }}
+      {{- $cloudPodAnnotations := include "polaris-console.cloudPodAnnotations" . }}
+      {{- if or .Values.podAnnotations $cloudPodAnnotations }}
+      annotations:
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+        {{- with $cloudPodAnnotations }}
+        {{- . | nindent 8 }}
+        {{- end }}
       {{- end }}
     spec:
       automountServiceAccountToken: {{ .Values.serviceAccount.automount }}

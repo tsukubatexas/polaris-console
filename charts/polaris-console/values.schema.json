@@ -35,6 +35,166 @@
         },
         "name": {
           "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "rbac": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "type": "boolean"
+        },
+        "rules": {
+          "type": "array"
+        }
+      }
+    },
+    "cloud": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string",
+          "enum": ["none", "aws", "azure", "gcp"]
+        },
+        "aws": {
+          "type": "object",
+          "properties": {
+            "irsa": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "roleArn": {
+                  "type": "string"
+                },
+                "audience": {
+                  "type": "string"
+                },
+                "stsRegionalEndpoints": {
+                  "type": "boolean"
+                },
+                "tokenExpirationSeconds": {
+                  "type": "integer",
+                  "minimum": 3600,
+                  "maximum": 86400
+                }
+              }
+            },
+            "podIdentity": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "azure": {
+          "type": "object",
+          "properties": {
+            "workloadIdentity": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "clientId": {
+                  "type": "string"
+                },
+                "tenantId": {
+                  "type": "string"
+                },
+                "serviceAccountTokenExpirationSeconds": {
+                  "type": "integer",
+                  "minimum": 3600,
+                  "maximum": 86400
+                },
+                "injectProxySidecar": {
+                  "type": "boolean"
+                },
+                "proxySidecarPort": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 65535
+                },
+                "skipContainers": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "gcp": {
+          "type": "object",
+          "properties": {
+            "workloadIdentity": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "mode": {
+                  "type": "string",
+                  "enum": ["direct", "serviceAccountImpersonation"]
+                },
+                "serviceAccountEmail": {
+                  "type": "string"
+                },
+                "returnPrincipalIdAsEmail": {
+                  "type": "boolean"
+                },
+                "credentialQuotaProject": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "podLabels": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "podAnnotations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array"
+    },
+    "nameOverride": {
+      "type": "string"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
+    "resources": {
+      "type": "object"
+    },
+    "podDisruptionBudget": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "minAvailable": {
+          "type": ["integer", "string"]
         }
       }
     },

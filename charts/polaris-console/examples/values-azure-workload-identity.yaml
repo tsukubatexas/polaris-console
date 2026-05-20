@@ -1,0 +1,37 @@
+cloud:
+  provider: azure
+  azure:
+    workloadIdentity:
+      enabled: true
+      clientId: 00000000-0000-0000-0000-000000000000
+      tenantId: 11111111-1111-1111-1111-111111111111
+      serviceAccountTokenExpirationSeconds: 3600
+
+config:
+  allowedOrigins:
+    - https://polaris-console.example.com
+  allowedTargetHosts:
+    - polaris.example.com
+    - login.microsoftonline.com
+
+networkPolicy:
+  enabled: true
+  egress:
+    extraRules:
+      - to:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - protocol: TCP
+            port: 443
+          - protocol: TCP
+            port: 8181
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+        ports:
+          - protocol: UDP
+            port: 53
+          - protocol: TCP
+            port: 53

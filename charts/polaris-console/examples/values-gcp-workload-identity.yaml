@@ -1,0 +1,38 @@
+cloud:
+  provider: gcp
+  gcp:
+    workloadIdentity:
+      enabled: true
+      mode: serviceAccountImpersonation
+      serviceAccountEmail: polaris-console-prod@my-project.iam.gserviceaccount.com
+      returnPrincipalIdAsEmail: true
+
+config:
+  allowedOrigins:
+    - https://polaris-console.example.com
+  allowedTargetHosts:
+    - polaris.example.com
+    - oauth2.googleapis.com
+    - iamcredentials.googleapis.com
+
+networkPolicy:
+  enabled: true
+  egress:
+    extraRules:
+      - to:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - protocol: TCP
+            port: 443
+          - protocol: TCP
+            port: 8181
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+        ports:
+          - protocol: UDP
+            port: 53
+          - protocol: TCP
+            port: 53

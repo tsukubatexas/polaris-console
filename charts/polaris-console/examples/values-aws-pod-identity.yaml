@@ -1,0 +1,27 @@
+cloud:
+  provider: aws
+  aws:
+    irsa:
+      enabled: false
+    podIdentity:
+      enabled: true
+
+config:
+  allowedOrigins:
+    - https://polaris-console.example.com
+  allowedTargetHosts:
+    - polaris.example.com
+    - sts.eu-central-1.amazonaws.com
+
+networkPolicy:
+  enabled: true
+  egress:
+    extraRules:
+      - to:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - protocol: TCP
+            port: 443
+          - protocol: TCP
+            port: 8181

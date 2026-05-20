@@ -27,6 +27,34 @@ The chart deliberately fails to render unless `config.allowedTargetHosts` is set
 - Enables `POLARIS_CONSOLE_COOKIE_SECURE=true` by default.
 - Enables NetworkPolicy by default.
 
+## Cloud AuthN/AuthZ
+
+Polaris Console does not ship static cloud credentials. In production, bind the pod's Kubernetes ServiceAccount to a cloud identity and grant that cloud identity only the IAM/RBAC permissions it needs.
+
+Supported modes:
+
+- AWS EKS IRSA: renders `eks.amazonaws.com/role-arn` and optional STS annotations.
+- AWS EKS Pod Identity: keeps the Kubernetes ServiceAccount stable; create the Pod Identity association outside Helm.
+- Azure AKS Workload Identity: renders `azure.workload.identity/client-id`, optional tenant/token annotations, and the required pod label `azure.workload.identity/use: "true"`.
+- Google GKE Workload Identity Federation: supports direct Kubernetes ServiceAccount principals and IAM service account impersonation through `iam.gke.io/gcp-service-account`.
+- Kubernetes RBAC: disabled by default because the console does not need Kubernetes API permissions. Enable `rbac.create` only with explicit least-privilege rules.
+
+Examples:
+
+```bash
+helm template polaris-console charts/polaris-console -f charts/polaris-console/examples/values-aws-irsa.yaml
+helm template polaris-console charts/polaris-console -f charts/polaris-console/examples/values-aws-pod-identity.yaml
+helm template polaris-console charts/polaris-console -f charts/polaris-console/examples/values-azure-workload-identity.yaml
+helm template polaris-console charts/polaris-console -f charts/polaris-console/examples/values-gcp-workload-identity.yaml
+```
+
+References:
+
+- AWS IRSA: https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html
+- AWS EKS Pod Identity: https://docs.aws.amazon.com/eks/latest/userguide/pod-id-association.html
+- Azure Workload Identity: https://learn.microsoft.com/en-us/azure/aks/workload-identity-overview
+- GKE Workload Identity Federation: https://cloud.google.com/kubernetes-engine/docs/how-to/workload-identity
+
 ## Production Values
 
 Set at least:
