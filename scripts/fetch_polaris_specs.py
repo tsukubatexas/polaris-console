@@ -221,6 +221,13 @@ def build_registry(spec_dir: Path, tag: str) -> dict[str, Any]:
                 if record:
                     operations.append(record)
 
+    id_counts: dict[str, int] = {}
+    for operation in operations:
+        id_counts[operation["id"]] = id_counts.get(operation["id"], 0) + 1
+    for operation in operations:
+        if id_counts[operation["id"]] > 1:
+            operation["id"] = f"{operation['service']}_{operation['id']}"
+
     operations.sort(key=lambda item: (item["service"], item["path"], item["method"]))
     return {
         "generated_at": dt.datetime.now(dt.UTC).isoformat(timespec="seconds"),

@@ -24,6 +24,15 @@ def test_spec_summary_contains_generated_operations() -> None:
     assert body["services"]["management"] > 0
 
 
+def test_operation_ids_are_unique() -> None:
+    response = client().get("/api/spec/operations")
+
+    assert response.status_code == 200
+    operations = response.json()
+    operation_ids = [operation["id"] for operation in operations]
+    assert len(operation_ids) == len(set(operation_ids))
+
+
 def test_connect_rejects_non_http_targets() -> None:
     response = client().post(
         "/api/session/connect",
