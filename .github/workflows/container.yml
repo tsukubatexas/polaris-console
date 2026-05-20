@@ -47,6 +47,7 @@ jobs:
           fi
 
           docker build "${tags[@]}" .
+          scripts/container_smoke_test.sh "$IMAGE:$SHA_TAG"
           docker push "$IMAGE:$SHA_TAG"
           if [[ "$REF_TYPE" == "branch" && "$REF_NAME" == "main" ]]; then
             docker push "$IMAGE:latest"

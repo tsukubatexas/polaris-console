@@ -52,6 +52,7 @@ jobs:
 
           mkdir -p "$worktree/charts"
           cp .helm-packages/*.tgz "$worktree/charts/"
+          cp charts/artifacthub-repo.yml "$worktree/artifacthub-repo.yml"
           if [[ -f "$worktree/charts/index.yaml" ]]; then
             helm repo index "$worktree/charts" --url "$CHART_REPO_URL" --merge "$worktree/charts/index.yaml"
           else

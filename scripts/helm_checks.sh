@@ -39,6 +39,9 @@ grep -q 'value: "true"' "$render_dir/secure.yaml"
 grep -q "POLARIS_CONSOLE_ALLOWED_TARGET_HOSTS" "$render_dir/secure.yaml"
 grep -q "polaris.example.com,login.microsoftonline.com" "$render_dir/secure.yaml"
 grep -q "kind: NetworkPolicy" "$render_dir/secure.yaml"
+test -f charts/artifacthub-repo.yml
+test -f "$chart_dir/values.schema.json"
+test -f "$chart_dir/README.md"
 
 helm package "$chart_dir" --destination "$package_dir"
 helm repo index "$package_dir" --url "https://raw.githubusercontent.com/tsukubatexas/polaris-console/gh-pages/charts"

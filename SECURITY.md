@@ -18,7 +18,9 @@ Do not open public issues that include tokens, OAuth client secrets, Polaris URL
 - Production deployments should use HTTPS and set `POLARIS_CONSOLE_COOKIE_SECURE=true`.
 - Production deployments should set `POLARIS_CONSOLE_ALLOWED_TARGET_HOSTS`.
 - Helm deployments fail closed unless `config.allowedTargetHosts` is set or local development mode is explicitly enabled.
+- Helm values are schema-validated and the public chart package is rendered in CI with secure values.
 - The published container image runs as a non-root user and the Helm chart disables privilege escalation by default.
+- Container CI performs a live health-check smoke test and verifies the runtime user is UID `10001`.
 - Scheduled OpenAI repair jobs must use a scoped `OPENAI_API_KEY` secret and protected branch rules.
 
 ## Secret Handling

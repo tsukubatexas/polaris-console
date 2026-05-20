@@ -48,3 +48,7 @@ jobs:
         run: npm run build
       - name: Check Helm chart
         run: scripts/helm_checks.sh
+      - name: Build and smoke-test container
+        run: |
+          docker build -t polaris-console:ci .
+          scripts/container_smoke_test.sh polaris-console:ci

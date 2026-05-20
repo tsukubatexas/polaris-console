@@ -18,6 +18,7 @@ if [[ -z "$PYTHON_BIN" ]]; then
 fi
 
 "$PYTHON_BIN" -m pip install -e ".[dev]"
+scripts/check_workflows_yaml.py
 scripts/check_generated_current.py
 scripts/check_actions_pinned.sh
 "$PYTHON_BIN" -m ruff check .

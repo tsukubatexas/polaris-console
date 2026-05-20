@@ -1,5 +1,9 @@
 # Polaris Console
 
+[![CI](https://github.com/tsukubatexas/polaris-console/actions/workflows/ci.yml/badge.svg)](https://github.com/tsukubatexas/polaris-console/actions/workflows/ci.yml)
+[![Helm](https://github.com/tsukubatexas/polaris-console/actions/workflows/helm.yml/badge.svg)](https://github.com/tsukubatexas/polaris-console/actions/workflows/helm.yml)
+[![CodeQL](https://github.com/tsukubatexas/polaris-console/actions/workflows/codeql.yml/badge.svg)](https://github.com/tsukubatexas/polaris-console/actions/workflows/codeql.yml)
+
 Web console for Apache Polaris.
 
 Polaris Console turns the Apache Polaris OpenAPI surface into a dynamic React UI backed by a Python FastAPI proxy. The console keeps the product simple for humans, while the repository keeps itself fresh with scheduled OpenAPI refreshes, generated operation metadata, CI checks, and optional OpenAI repair loops.
@@ -121,8 +125,8 @@ Workflows:
 
 - `ci`: validates Python, React, generated registries, tests, and pinned actions.
 - `agentic update`: weekly OpenAPI refresh with optional OpenAI repair via `OPENAI_API_KEY`.
-- `container`: publishes the hardened container image to GitHub Container Registry.
-- `helm`: validates and publishes the public Helm repository on `gh-pages`.
+- `container`: smoke-tests and publishes the hardened container image to GitHub Container Registry.
+- `helm`: validates schema, lint, secure rendering, package generation, and publishes the public Helm repository on `gh-pages`.
 - `monthly hygiene`: closes stale automated PRs.
 - `quarterly cleanup`: deeper dependency and generated-surface cleanup.
 - `release`: Release Please keeps changelog and GitHub releases moving.
@@ -158,6 +162,7 @@ Chart security defaults:
 - Sets `POLARIS_CONSOLE_COOKIE_SECURE=true` by default.
 - Requires `POLARIS_CONSOLE_ALLOWED_TARGET_HOSTS` unless local development mode is explicit.
 - Enables a NetworkPolicy by default; production deployments should add explicit egress rules for Polaris, OAuth, DNS, and observability endpoints.
+- Ships a Helm `values.schema.json` so invalid values fail early.
 
 ## Security Posture
 
@@ -186,12 +191,21 @@ scripts/run_checks.sh
 
 The check script runs:
 
+- workflow YAML parsing
 - generated-registry consistency
 - pinned-action validation
 - Ruff
 - Pytest
 - TypeScript
 - Vite production build
+- Helm chart validation
+
+Container smoke test:
+
+```bash
+docker build -t polaris-console:test .
+scripts/container_smoke_test.sh polaris-console:test
+```
 
 ## Status
 
