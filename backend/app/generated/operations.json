@@ -1,0 +1,4406 @@
+{
+  "generated_at": "2026-05-20T03:36:14+00:00",
+  "operations": [
+    {
+      "description": "Retrieves all applicable policies for a specified entity, including inherited policies from parent entities. An entity can be a table/view, namespace, or catalog. The required parameters depend on the entity type:\n\n- Table/View:\n  - The `namespace` parameter is required to specify the entity's namespace.\n  - The `target-name` parameter is required to specify the entity name.\n- Namespace:\n  - The `namespace` parameter is required to specify the identifier.\n  - The `target-name` parameter should not be set.\n- Catalog:\n  - Neither `namespace` nor `target-name` should be set.\n\nAn optional policyType parameter filters results to return only policies of the specified type.\n\nThis API evaluates the entity's hierarchy and applies inheritable policies from parent entities. The inheritance follows the following override rule:\n\n1. Table-like level policies override namespace and catalog policies.\n2. Namespace-level policies override upper level namespace or catalog policies.\n",
+      "header_params": [],
+      "id": "getApplicablePolicies",
+      "method": "GET",
+      "mutating": false,
+      "path": "/polaris/v1/{prefix}/applicable-policies",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [
+        {
+          "description": "A namespace identifier as a single string. Multipart namespace parts should be separated by the unit separator (`0x1F`) byte.",
+          "location": "query",
+          "name": "namespace",
+          "required": false,
+          "schema_type": "string"
+        },
+        {
+          "description": "Name of the target table/view",
+          "location": "query",
+          "name": "target-name",
+          "required": false,
+          "schema_type": "string"
+        }
+      ],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/policy-apis.yaml",
+      "summary": "Get Applicable policies for catalog, namespace, table, or views",
+      "tags": [
+        "Policy API"
+      ]
+    },
+    {
+      "description": "Return all generic table identifiers under this namespace",
+      "header_params": [],
+      "id": "listGenericTables",
+      "method": "GET",
+      "mutating": false,
+      "path": "/polaris/v1/{prefix}/namespaces/{namespace}/generic-tables",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/generic-tables-api.yaml",
+      "summary": "List all generic tables identifiers underneath a given namespace",
+      "tags": [
+        "Generic Table API"
+      ]
+    },
+    {
+      "description": "Create a generic table under the given namespace, and return the created table information as a response.",
+      "header_params": [],
+      "id": "createGenericTable",
+      "method": "POST",
+      "mutating": true,
+      "path": "/polaris/v1/{prefix}/namespaces/{namespace}/generic-tables",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CreateGenericTableRequest"
+      },
+      "request_schema_name": "CreateGenericTableRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/generic-tables-api.yaml",
+      "summary": "Create a generic table under the given namespace",
+      "tags": [
+        "Generic Table API"
+      ]
+    },
+    {
+      "description": "Remove a table under the given namespace from the catalog",
+      "header_params": [],
+      "id": "dropGenericTable",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/polaris/v1/{prefix}/namespaces/{namespace}/generic-tables/{generic-table}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `generic-table`.",
+          "location": "path",
+          "name": "generic-table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/generic-tables-api.yaml",
+      "summary": "Drop a generic table under the given namespace from the catalog",
+      "tags": [
+        "Generic Table API"
+      ]
+    },
+    {
+      "description": "Load a generic table from the catalog under the given namespace.\nThe response contains all table information passed during create.",
+      "header_params": [],
+      "id": "loadGenericTable",
+      "method": "GET",
+      "mutating": false,
+      "path": "/polaris/v1/{prefix}/namespaces/{namespace}/generic-tables/{generic-table}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `generic-table`.",
+          "location": "path",
+          "name": "generic-table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/generic-tables-api.yaml",
+      "summary": "Load a generic table under the given namespace from the catalog",
+      "tags": [
+        "Generic Table API"
+      ]
+    },
+    {
+      "description": "Return all policy identifiers under this namespace. Users can optionally filter the result by policy type",
+      "header_params": [],
+      "id": "listPolicies",
+      "method": "GET",
+      "mutating": false,
+      "path": "/polaris/v1/{prefix}/namespaces/{namespace}/policies",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/policy-apis.yaml",
+      "summary": "List all policy identifiers underneath a given namespace",
+      "tags": [
+        "Policy API"
+      ]
+    },
+    {
+      "description": "Creates a policy within the specified namespace.\n\nA policy defines a set of rules governing actions on specified resources under predefined conditions.\nIn Apache Polaris, policies are created, stored, and later referenced by external engines to enforce access controls on associated resources.\n\nUser provides the following inputs when creating a policy\n- `name` (REQUIRED): The name of the policy.\n- `type` (REQUIRED): The type of the policy.\n  - **Predefined Policies:** policies have a `system.*` prefix in their type, such as `system.data_compaction`\n- `description` (OPTIONAL): Provides details about the policy's purpose and functionality\n- `content` (OPTIONAL): Defines the rules that control actions and access conditions on resources. The format can be JSON, SQL, or any other format.\n\nThe content field in the request body is validated using the policy's corresponding validator. The policy is created only if the content passes validation.\n\nUpon successful creation, the new policy's version will be 0.\n",
+      "header_params": [],
+      "id": "createPolicy",
+      "method": "POST",
+      "mutating": true,
+      "path": "/polaris/v1/{prefix}/namespaces/{namespace}/policies",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CreatePolicyRequest"
+      },
+      "request_schema_name": "CreatePolicyRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/policy-apis.yaml",
+      "summary": "Create a policy in the given namespace",
+      "tags": [
+        "Policy API"
+      ]
+    },
+    {
+      "description": "Remove a policy from the catalog. \n\nA policy can only be dropped if it is not attached to any resource entity. To remove the policy along with all its attachments, set detach-all to true.\n",
+      "header_params": [],
+      "id": "dropPolicy",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/polaris/v1/{prefix}/namespaces/{namespace}/policies/{policy-name}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `policy-name`.",
+          "location": "path",
+          "name": "policy-name",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [
+        {
+          "description": "When set to true, the dropPolicy operation will also delete all mappings between the policy and its attached target entities.\n",
+          "location": "query",
+          "name": "detach-all",
+          "required": false,
+          "schema_type": "boolean"
+        }
+      ],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/policy-apis.yaml",
+      "summary": "Drop a policy from the catalog",
+      "tags": [
+        "Policy API"
+      ]
+    },
+    {
+      "description": "Load a policy from the catalog\n\nThe response contains the policy's metadata and content. For more details, refer to the definition of the `Policy` model.\n",
+      "header_params": [],
+      "id": "loadPolicy",
+      "method": "GET",
+      "mutating": false,
+      "path": "/polaris/v1/{prefix}/namespaces/{namespace}/policies/{policy-name}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `policy-name`.",
+          "location": "path",
+          "name": "policy-name",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/policy-apis.yaml",
+      "summary": "Load a policy",
+      "tags": [
+        "Policy API"
+      ]
+    },
+    {
+      "description": "Update a policy\n\nA policy's description and content can be updated. The new content is validated against the policy's corresponding validator.\nUpon a successful update, the policy's version is incremented by 1.\n\nThe update will only succeed if the current version matches the one in the catalog.\n",
+      "header_params": [],
+      "id": "updatePolicy",
+      "method": "PUT",
+      "mutating": true,
+      "path": "/polaris/v1/{prefix}/namespaces/{namespace}/policies/{policy-name}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `policy-name`.",
+          "location": "path",
+          "name": "policy-name",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/UpdatePolicyRequest"
+      },
+      "request_schema_name": "UpdatePolicyRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/policy-apis.yaml",
+      "summary": "Update a policy",
+      "tags": [
+        "Policy API"
+      ]
+    },
+    {
+      "description": "Remove a mapping between a policy and a target entity\n\nA target entity can be a catalog, namespace, table or view.\n",
+      "header_params": [],
+      "id": "detachPolicy",
+      "method": "POST",
+      "mutating": true,
+      "path": "/polaris/v1/{prefix}/namespaces/{namespace}/policies/{policy-name}/mappings",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `policy-name`.",
+          "location": "path",
+          "name": "policy-name",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/DetachPolicyRequest"
+      },
+      "request_schema_name": "DetachPolicyRequest",
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/policy-apis.yaml",
+      "summary": "Remove a mapping between a policy and a target entity",
+      "tags": [
+        "Policy API"
+      ]
+    },
+    {
+      "description": "Create a mapping between a policy and a resource entity\n\nPolicy can be attached to different levels:\n1. **Table-like level:** Policies specific to individual tables or views.\n2. **Namespace level:** Policies applies to a namespace.\n3. **Catalog level:** Policies that applies to a catalog\n\nThe ability to attach a policy to a specific entity type is governed by the PolicyValidator. A policy can only be attached if the resource entity is a valid target for the specified policy type.\n\nIn addition to the validation rules enforced by the PolicyValidator, there are additional constraints on policy attachment:\n1. For inheritable policies, only one policy of the same type can be attached to a given resource entity.\n2. For non-inheritable policies, multiple policies of the same type can be attached to the same resource entity without restriction.\n\nFor inheritable policies, the inheritance override rule is:\n1. Table-like level policies override namespace and catalog policies.\n2. Namespace-level policies override upper level namespace or catalog policies.\n\nAdditional parameters can be provided in `parameters` when creating a mapping to define specific behavior or constraints.\n\nIf the policy is already attached to the target entity, the existing mapping record will be updated with the new set of parameters, replacing the previous ones.\n",
+      "header_params": [],
+      "id": "attachPolicy",
+      "method": "PUT",
+      "mutating": true,
+      "path": "/polaris/v1/{prefix}/namespaces/{namespace}/policies/{policy-name}/mappings",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `policy-name`.",
+          "location": "path",
+          "name": "policy-name",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/AttachPolicyRequest"
+      },
+      "request_schema_name": "AttachPolicyRequest",
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/policy-apis.yaml",
+      "summary": "Create a mapping between a policy and a resource entity",
+      "tags": [
+        "Policy API"
+      ]
+    },
+    {
+      "description": " All REST clients should first call this route to get catalog configuration properties from the server to configure the catalog and its HTTP client. Configuration from the server consists of two sets of key/value pairs.\n- defaults -  properties that should be used as default configuration; applied before client configuration\n- overrides - properties that should be used to override client configuration; applied after defaults and client configuration\n\nCatalog configuration is constructed by setting the defaults, then client- provided configuration, and finally overrides. The final property set is then used to configure the catalog.\n\nFor example, a default configuration property might set the size of the client pool, which can be replaced with a client-specific setting. An override might be used to set the warehouse location, which is stored on the server rather than in client configuration.\n\nCommon catalog configuration settings are documented at https://iceberg.apache.org/docs/latest/configuration/#catalog-properties\n\nThe catalog configuration also holds an optional `endpoints` field that contains information about the endpoints supported by the server. If a server does not send the `endpoints` field, a default set of endpoints is assumed:\n- GET /v1/{prefix}/namespaces\n- POST /v1/{prefix}/namespaces\n- GET /v1/{prefix}/namespaces/{namespace}\n- DELETE /v1/{prefix}/namespaces/{namespace}\n- POST /v1/{prefix}/namespaces/{namespace}/properties\n- GET /v1/{prefix}/namespaces/{namespace}/tables\n- POST /v1/{prefix}/namespaces/{namespace}/tables\n- GET /v1/{prefix}/namespaces/{namespace}/tables/{table}\n- POST /v1/{prefix}/namespaces/{namespace}/tables/{table}\n- DELETE /v1/{prefix}/namespaces/{namespace}/tables/{table}\n- POST /v1/{prefix}/namespaces/{namespace}/register\n- POST /v1/{prefix}/namespaces/{namespace}/tables/{table}/metrics\n- POST /v1/{prefix}/tables/rename\n- POST /v1/{prefix}/transactions/commit ",
+      "header_params": [],
+      "id": "catalog_getConfig",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/config",
+      "path_params": [],
+      "query_params": [
+        {
+          "description": "Warehouse location or identifier to request from the service",
+          "location": "query",
+          "name": "warehouse",
+          "required": false,
+          "schema_type": "string"
+        }
+      ],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "List all catalog configuration settings",
+      "tags": [
+        "Configuration API"
+      ]
+    },
+    {
+      "description": "The `oauth/tokens` endpoint is **DEPRECATED for REMOVAL**. It is _not_ recommended to implement this endpoint, unless you are fully aware of the potential security implications.\nAll clients are encouraged to explicitly set the configuration property `oauth2-server-uri` to the correct OAuth endpoint.\nDeprecated since Iceberg (Java) 1.6.0. The endpoint and related types will be removed from this spec in Iceberg (Java) 2.0.\nSee [Security improvements in the Iceberg REST specification](https://github.com/apache/iceberg/issues/10537)\n\nExchange credentials for a token using the OAuth2 client credentials flow or token exchange.\n\nThis endpoint is used for three purposes -\n1. To exchange client credentials (client ID and secret) for an access token This uses the client credentials flow.\n2. To exchange a client token and an identity token for a more specific access token This uses the token exchange flow.\n3. To exchange an access token for one with the same claims and a refreshed expiration period This uses the token exchange flow.\n\nFor example, a catalog client may be configured with client credentials from the OAuth2 Authorization flow. This client would exchange its client ID and secret for an access token using the client credentials request with this endpoint (1). Subsequent requests would then use that access token.\n\nSome clients may also handle sessions that have additional user context. These clients would use the token exchange flow to exchange a user token (the \"subject\" token) from the session for a more specific access token for that user, using the catalog's access token as the \"actor\" token (2). The user ID token is the \"subject\" token and can be any token type allowed by the OAuth2 token exchange flow, including a unsecured JWT token with a sub claim. This request should use the catalog's bearer token in the \"Authorization\" header.\n\nClients may also use the token exchange flow to refresh a token that is about to expire by sending a token exchange request (3). The request's \"subject\" token should be the expiring token. This request should use the subject token in the \"Authorization\" header.",
+      "header_params": [
+        {
+          "description": "",
+          "location": "header",
+          "name": "Authorization",
+          "required": false,
+          "schema_type": "string"
+        }
+      ],
+      "id": "catalog_getToken",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/oauth/tokens",
+      "path_params": [],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/OAuthTokenRequest"
+      },
+      "request_schema_name": "OAuthTokenRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/oauth-tokens-api.yaml",
+      "summary": "Get a token using an OAuth2 flow (DEPRECATED for REMOVAL)",
+      "tags": [
+        "OAuth2 API"
+      ]
+    },
+    {
+      "description": "List all namespaces at a certain level, optionally starting from a given parent namespace. If table accounting.tax.paid.info exists, using 'SELECT NAMESPACE IN accounting' would translate into `GET /namespaces?parent=accounting` and must return a namespace, [\"accounting\", \"tax\"] only. Using 'SELECT NAMESPACE IN accounting.tax' would translate into `GET /namespaces?parent=accounting%1Ftax` and must return a namespace, [\"accounting\", \"tax\", \"paid\"]. If `parent` is not provided, all top-level namespaces should be listed.",
+      "header_params": [],
+      "id": "catalog_listNamespaces",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [
+        {
+          "description": "An optional namespace, underneath which to list namespaces. If not provided or empty, all top-level namespaces should be listed. If parent is a multipart namespace, the parts must be separated by the unit separator (`0x1F`) byte.",
+          "location": "query",
+          "name": "parent",
+          "required": false,
+          "schema_type": "string"
+        }
+      ],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "List namespaces, optionally providing a parent namespace to list underneath",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Create a namespace, with an optional set of properties. The server might also add properties, such as `last_modified_time` etc.",
+      "header_params": [],
+      "id": "catalog_createNamespace",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CreateNamespaceRequest"
+      },
+      "request_schema_name": "CreateNamespaceRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "406",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Create a namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "",
+      "header_params": [],
+      "id": "catalog_dropNamespace",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Drop a namespace from the catalog. Namespace must be empty.",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Return all stored metadata properties for a given namespace",
+      "header_params": [],
+      "id": "catalog_loadNamespaceMetadata",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Load the metadata properties for a namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Check if a namespace exists. The response does not contain a body.",
+      "header_params": [],
+      "id": "catalog_namespaceExists",
+      "method": "HEAD",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Check if a namespace exists",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Set and/or remove properties on a namespace. The request body specifies a list of properties to remove and a map of key value pairs to update.\nProperties that are not in the request are not modified or removed by this call.\nServer implementations are not required to support namespace properties.",
+      "header_params": [],
+      "id": "catalog_updateProperties",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/properties",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/UpdateNamespacePropertiesRequest"
+      },
+      "request_schema_name": "UpdateNamespacePropertiesRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "406",
+        "419",
+        "422",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Set or remove properties on a namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Register a table using given metadata file location.",
+      "header_params": [],
+      "id": "catalog_registerTable",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/register",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/RegisterTableRequest"
+      },
+      "request_schema_name": "RegisterTableRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Register a table in the given namespace using given metadata file location",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Return all table identifiers under this namespace",
+      "header_params": [],
+      "id": "catalog_listTables",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "List all table identifiers underneath a given namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Create a table or start a create transaction, like atomic CTAS.\n\nIf `stage-create` is false, the table is created immediately.\n\nIf `stage-create` is true, the table is not created, but table metadata is initialized and returned. The service should prepare as needed for a commit to the table commit endpoint to complete the create transaction. The client uses the returned metadata to begin a transaction. To commit the transaction, the client sends all create and subsequent changes to the table commit route. Changes from the table create operation include changes like AddSchemaUpdate and SetCurrentSchemaUpdate that set the initial table state.",
+      "header_params": [],
+      "id": "catalog_createTable",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CreateTableRequest"
+      },
+      "request_schema_name": "CreateTableRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Create a table in the given namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Remove a table from the catalog",
+      "header_params": [],
+      "id": "catalog_dropTable",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [
+        {
+          "description": "Whether the user requested to purge the underlying table's data and metadata",
+          "location": "query",
+          "name": "purgeRequested",
+          "required": false,
+          "schema_type": "boolean"
+        }
+      ],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Drop a table from the catalog",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Load a table from the catalog.\n\nThe response contains both configuration and table metadata. The configuration, if non-empty is used as additional configuration for the table that overrides catalog configuration. For example, this configuration may change the FileIO implementation to be used for the table.\n\nThe response also contains the table's full metadata, matching the table metadata JSON file.\n\nThe catalog configuration may contain credentials that should be used for subsequent requests for the table. The configuration key \"token\" is used to pass an access token to be used as a bearer token for table requests. Otherwise, a token may be passed using a RFC 8693 token type as a configuration key. For example, \"urn:ietf:params:oauth:token-type:jwt=<JWT-token>\".",
+      "header_params": [
+        {
+          "description": "An optional header that allows the server to return 304 (Not Modified) if the metadata is current. The content is the value of the ETag received in a CreateTableResponse or LoadTableResponse.",
+          "location": "header",
+          "name": "If-None-Match",
+          "required": false,
+          "schema_type": "string"
+        }
+      ],
+      "id": "catalog_loadTable",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [
+        {
+          "description": "The snapshots to return in the body of the metadata. Setting the value to `all` would return the full set of snapshots currently valid for the table. Setting the value to `refs` would load all snapshots referenced by branches or tags.\nDefault if no param is provided is `all`.",
+          "location": "query",
+          "name": "snapshots",
+          "required": false,
+          "schema_type": "string"
+        }
+      ],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "304",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Load a table from the catalog",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Check if a table exists within a given namespace. The response does not contain a body.",
+      "header_params": [],
+      "id": "catalog_tableExists",
+      "method": "HEAD",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Check if a table exists",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Commit updates to a table.\n\nCommits have two parts, requirements and updates. Requirements are assertions that will be validated before attempting to make and commit changes. For example, `assert-ref-snapshot-id` will check that a named ref's snapshot ID has a certain value. Server implementations are required to fail with a 400 status code if any unknown updates or requirements are received.\n\nUpdates are changes to make to table metadata. For example, after asserting that the current main ref is at the expected snapshot, a commit may add a new child snapshot and set the ref to the new snapshot id.\n\nCreate table transactions that are started by createTable with `stage-create` set to true are committed using this route. Transactions should include all changes to the table, including table initialization, like AddSchemaUpdate and SetCurrentSchemaUpdate. The `assert-create` requirement is used to ensure that the table was not created concurrently.",
+      "header_params": [],
+      "id": "catalog_updateTable",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CommitTableRequest"
+      },
+      "request_schema_name": "CommitTableRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "500",
+        "502",
+        "503",
+        "504",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Commit updates to a table",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Load vended credentials for a table from the catalog.",
+      "header_params": [],
+      "id": "catalog_loadCredentials",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}/credentials",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Load vended credentials for a table from the catalog",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "",
+      "header_params": [],
+      "id": "catalog_reportMetrics",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}/metrics",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/ReportMetricsRequest"
+      },
+      "request_schema_name": "ReportMetricsRequest",
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Send a metrics report to this endpoint to be processed by the backend",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "",
+      "header_params": [],
+      "id": "sendNotification",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}/notifications",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/NotificationRequest"
+      },
+      "request_schema_name": "NotificationRequest",
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/polaris-catalog-apis/notifications-api.yaml",
+      "summary": "Sends a notification to the table",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Return all view identifiers under this namespace",
+      "header_params": [],
+      "id": "catalog_listViews",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/views",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "List all view identifiers underneath a given namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Create a view in the given namespace.",
+      "header_params": [],
+      "id": "catalog_createView",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/views",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CreateViewRequest"
+      },
+      "request_schema_name": "CreateViewRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Create a view in the given namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Remove a view from the catalog",
+      "header_params": [],
+      "id": "catalog_dropView",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/views/{view}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `view`.",
+          "location": "path",
+          "name": "view",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Drop a view from the catalog",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Load a view from the catalog.\n\nThe response contains both configuration and view metadata. The configuration, if non-empty is used as additional configuration for the view that overrides catalog configuration.\n\nThe response also contains the view's full metadata, matching the view metadata JSON file.\n\nThe catalog configuration may contain credentials that should be used for subsequent requests for the view. The configuration key \"token\" is used to pass an access token to be used as a bearer token for view requests. Otherwise, a token may be passed using a RFC 8693 token type as a configuration key. For example, \"urn:ietf:params:oauth:token-type:jwt=<JWT-token>\".",
+      "header_params": [],
+      "id": "catalog_loadView",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/views/{view}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `view`.",
+          "location": "path",
+          "name": "view",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Load a view from the catalog",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Check if a view exists within a given namespace. This request does not return a response body.",
+      "header_params": [],
+      "id": "catalog_viewExists",
+      "method": "HEAD",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/views/{view}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `view`.",
+          "location": "path",
+          "name": "view",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Check if a view exists",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Commit updates to a view.",
+      "header_params": [],
+      "id": "catalog_replaceView",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/views/{view}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `view`.",
+          "location": "path",
+          "name": "view",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CommitViewRequest"
+      },
+      "request_schema_name": "CommitViewRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "500",
+        "502",
+        "503",
+        "504",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Replace a view",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Rename a table from one identifier to another. It's valid to move a table across namespaces, but the server implementation is not required to support it.",
+      "header_params": [],
+      "id": "catalog_renameTable",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/tables/rename",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/RenameTableRequest"
+      },
+      "request_schema_name": "RenameTableRequest",
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "406",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Rename a table from its current name to a new name",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "",
+      "header_params": [],
+      "id": "catalog_commitTransaction",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/transactions/commit",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CommitTransactionRequest"
+      },
+      "request_schema_name": "CommitTransactionRequest",
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "500",
+        "502",
+        "503",
+        "504",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Commit updates to multiple tables in an atomic operation",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Rename a view from one identifier to another. It's valid to move a view across namespaces, but the server implementation is not required to support it.",
+      "header_params": [],
+      "id": "catalog_renameView",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/views/rename",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/RenameTableRequest"
+      },
+      "request_schema_name": "RenameTableRequest",
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "406",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "catalog",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Rename a view from its current name to a new name",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": " All REST clients should first call this route to get catalog configuration properties from the server to configure the catalog and its HTTP client. Configuration from the server consists of two sets of key/value pairs.\n- defaults -  properties that should be used as default configuration; applied before client configuration\n- overrides - properties that should be used to override client configuration; applied after defaults and client configuration\n\nCatalog configuration is constructed by setting the defaults, then client- provided configuration, and finally overrides. The final property set is then used to configure the catalog.\n\nFor example, a default configuration property might set the size of the client pool, which can be replaced with a client-specific setting. An override might be used to set the warehouse location, which is stored on the server rather than in client configuration.\n\nCommon catalog configuration settings are documented at https://iceberg.apache.org/docs/latest/configuration/#catalog-properties\n\nThe catalog configuration also holds an optional `endpoints` field that contains information about the endpoints supported by the server. If a server does not send the `endpoints` field, a default set of endpoints is assumed:\n- GET /v1/{prefix}/namespaces\n- POST /v1/{prefix}/namespaces\n- GET /v1/{prefix}/namespaces/{namespace}\n- DELETE /v1/{prefix}/namespaces/{namespace}\n- POST /v1/{prefix}/namespaces/{namespace}/properties\n- GET /v1/{prefix}/namespaces/{namespace}/tables\n- POST /v1/{prefix}/namespaces/{namespace}/tables\n- GET /v1/{prefix}/namespaces/{namespace}/tables/{table}\n- POST /v1/{prefix}/namespaces/{namespace}/tables/{table}\n- DELETE /v1/{prefix}/namespaces/{namespace}/tables/{table}\n- POST /v1/{prefix}/namespaces/{namespace}/register\n- POST /v1/{prefix}/namespaces/{namespace}/tables/{table}/metrics\n- POST /v1/{prefix}/tables/rename\n- POST /v1/{prefix}/transactions/commit ",
+      "header_params": [],
+      "id": "iceberg_getConfig",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/config",
+      "path_params": [],
+      "query_params": [
+        {
+          "description": "Warehouse location or identifier to request from the service",
+          "location": "query",
+          "name": "warehouse",
+          "required": false,
+          "schema_type": "string"
+        }
+      ],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "List all catalog configuration settings",
+      "tags": [
+        "Configuration API"
+      ]
+    },
+    {
+      "description": "The `oauth/tokens` endpoint is **DEPRECATED for REMOVAL**. It is _not_ recommended to implement this endpoint, unless you are fully aware of the potential security implications.\nAll clients are encouraged to explicitly set the configuration property `oauth2-server-uri` to the correct OAuth endpoint.\nDeprecated since Iceberg (Java) 1.6.0. The endpoint and related types will be removed from this spec in Iceberg (Java) 2.0.\nSee [Security improvements in the Iceberg REST specification](https://github.com/apache/iceberg/issues/10537)\n\nExchange credentials for a token using the OAuth2 client credentials flow or token exchange.\n\nThis endpoint is used for three purposes -\n1. To exchange client credentials (client ID and secret) for an access token This uses the client credentials flow.\n2. To exchange a client token and an identity token for a more specific access token This uses the token exchange flow.\n3. To exchange an access token for one with the same claims and a refreshed expiration period This uses the token exchange flow.\n\nFor example, a catalog client may be configured with client credentials from the OAuth2 Authorization flow. This client would exchange its client ID and secret for an access token using the client credentials request with this endpoint (1). Subsequent requests would then use that access token.\n\nSome clients may also handle sessions that have additional user context. These clients would use the token exchange flow to exchange a user token (the \"subject\" token) from the session for a more specific access token for that user, using the catalog's access token as the \"actor\" token (2). The user ID token is the \"subject\" token and can be any token type allowed by the OAuth2 token exchange flow, including a unsecured JWT token with a sub claim. This request should use the catalog's bearer token in the \"Authorization\" header.\n\nClients may also use the token exchange flow to refresh a token that is about to expire by sending a token exchange request (3). The request's \"subject\" token should be the expiring token. This request should use the subject token in the \"Authorization\" header.",
+      "header_params": [],
+      "id": "iceberg_getToken",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/oauth/tokens",
+      "path_params": [],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/OAuthTokenRequest"
+      },
+      "request_schema_name": "OAuthTokenRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Get a token using an OAuth2 flow (DEPRECATED for REMOVAL)",
+      "tags": [
+        "OAuth2 API"
+      ]
+    },
+    {
+      "description": "List all namespaces at a certain level, optionally starting from a given parent namespace. If table accounting.tax.paid.info exists, using 'SELECT NAMESPACE IN accounting' would translate into `GET /namespaces?parent=accounting` and must return a namespace, [\"accounting\", \"tax\"] only. Using 'SELECT NAMESPACE IN accounting.tax' would translate into `GET /namespaces?parent=accounting%1Ftax` and must return a namespace, [\"accounting\", \"tax\", \"paid\"]. If `parent` is not provided, all top-level namespaces should be listed.",
+      "header_params": [],
+      "id": "iceberg_listNamespaces",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [
+        {
+          "description": "An optional namespace, underneath which to list namespaces. If not provided or empty, all top-level namespaces should be listed. If parent is a multipart namespace, the parts must be separated by the unit separator (`0x1F`) byte.",
+          "location": "query",
+          "name": "parent",
+          "required": false,
+          "schema_type": "string"
+        }
+      ],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "List namespaces, optionally providing a parent namespace to list underneath",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Create a namespace, with an optional set of properties. The server might also add properties, such as `last_modified_time` etc.",
+      "header_params": [],
+      "id": "iceberg_createNamespace",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CreateNamespaceRequest"
+      },
+      "request_schema_name": "CreateNamespaceRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "406",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Create a namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "",
+      "header_params": [],
+      "id": "iceberg_dropNamespace",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Drop a namespace from the catalog. Namespace must be empty.",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Return all stored metadata properties for a given namespace",
+      "header_params": [],
+      "id": "iceberg_loadNamespaceMetadata",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Load the metadata properties for a namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Check if a namespace exists. The response does not contain a body.",
+      "header_params": [],
+      "id": "iceberg_namespaceExists",
+      "method": "HEAD",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Check if a namespace exists",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Set and/or remove properties on a namespace. The request body specifies a list of properties to remove and a map of key value pairs to update.\nProperties that are not in the request are not modified or removed by this call.\nServer implementations are not required to support namespace properties.",
+      "header_params": [],
+      "id": "iceberg_updateProperties",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/properties",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/UpdateNamespacePropertiesRequest"
+      },
+      "request_schema_name": "UpdateNamespacePropertiesRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "406",
+        "419",
+        "422",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Set or remove properties on a namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Register a table using given metadata file location.",
+      "header_params": [],
+      "id": "iceberg_registerTable",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/register",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/RegisterTableRequest"
+      },
+      "request_schema_name": "RegisterTableRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Register a table in the given namespace using given metadata file location",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Return all table identifiers under this namespace",
+      "header_params": [],
+      "id": "iceberg_listTables",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "List all table identifiers underneath a given namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Create a table or start a create transaction, like atomic CTAS.\n\nIf `stage-create` is false, the table is created immediately.\n\nIf `stage-create` is true, the table is not created, but table metadata is initialized and returned. The service should prepare as needed for a commit to the table commit endpoint to complete the create transaction. The client uses the returned metadata to begin a transaction. To commit the transaction, the client sends all create and subsequent changes to the table commit route. Changes from the table create operation include changes like AddSchemaUpdate and SetCurrentSchemaUpdate that set the initial table state.",
+      "header_params": [],
+      "id": "iceberg_createTable",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CreateTableRequest"
+      },
+      "request_schema_name": "CreateTableRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Create a table in the given namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Remove a table from the catalog",
+      "header_params": [],
+      "id": "iceberg_dropTable",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [
+        {
+          "description": "Whether the user requested to purge the underlying table's data and metadata",
+          "location": "query",
+          "name": "purgeRequested",
+          "required": false,
+          "schema_type": "boolean"
+        }
+      ],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Drop a table from the catalog",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Load a table from the catalog.\n\nThe response contains both configuration and table metadata. The configuration, if non-empty is used as additional configuration for the table that overrides catalog configuration. For example, this configuration may change the FileIO implementation to be used for the table.\n\nThe response also contains the table's full metadata, matching the table metadata JSON file.\n\nThe catalog configuration may contain credentials that should be used for subsequent requests for the table. The configuration key \"token\" is used to pass an access token to be used as a bearer token for table requests. Otherwise, a token may be passed using a RFC 8693 token type as a configuration key. For example, \"urn:ietf:params:oauth:token-type:jwt=<JWT-token>\".",
+      "header_params": [
+        {
+          "description": "An optional header that allows the server to return 304 (Not Modified) if the metadata is current. The content is the value of the ETag received in a CreateTableResponse or LoadTableResponse.",
+          "location": "header",
+          "name": "If-None-Match",
+          "required": false,
+          "schema_type": "string"
+        }
+      ],
+      "id": "iceberg_loadTable",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [
+        {
+          "description": "The snapshots to return in the body of the metadata. Setting the value to `all` would return the full set of snapshots currently valid for the table. Setting the value to `refs` would load all snapshots referenced by branches or tags.\nDefault if no param is provided is `all`.",
+          "location": "query",
+          "name": "snapshots",
+          "required": false,
+          "schema_type": "string"
+        }
+      ],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "304",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Load a table from the catalog",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Check if a table exists within a given namespace. The response does not contain a body.",
+      "header_params": [],
+      "id": "iceberg_tableExists",
+      "method": "HEAD",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Check if a table exists",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Commit updates to a table.\n\nCommits have two parts, requirements and updates. Requirements are assertions that will be validated before attempting to make and commit changes. For example, `assert-ref-snapshot-id` will check that a named ref's snapshot ID has a certain value. Server implementations are required to fail with a 400 status code if any unknown updates or requirements are received.\n\nUpdates are changes to make to table metadata. For example, after asserting that the current main ref is at the expected snapshot, a commit may add a new child snapshot and set the ref to the new snapshot id.\n\nCreate table transactions that are started by createTable with `stage-create` set to true are committed using this route. Transactions should include all changes to the table, including table initialization, like AddSchemaUpdate and SetCurrentSchemaUpdate. The `assert-create` requirement is used to ensure that the table was not created concurrently.",
+      "header_params": [],
+      "id": "iceberg_updateTable",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CommitTableRequest"
+      },
+      "request_schema_name": "CommitTableRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "500",
+        "502",
+        "503",
+        "504",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Commit updates to a table",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Load vended credentials for a table from the catalog.",
+      "header_params": [],
+      "id": "iceberg_loadCredentials",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}/credentials",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Load vended credentials for a table from the catalog",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "",
+      "header_params": [],
+      "id": "iceberg_reportMetrics",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}/metrics",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/ReportMetricsRequest"
+      },
+      "request_schema_name": "ReportMetricsRequest",
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Send a metrics report to this endpoint to be processed by the backend",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Submits a scan for server-side planning.\n\nPoint-in-time scans are planned by passing snapshot-id to identify the table snapshot to scan. Incremental scans are planned by passing both start-snapshot-id and end-snapshot-id. Requests that include both point in time config properties and incremental config properties are invalid. If the request does not include either incremental or point-in-time config properties, scan planning should produce a point-in-time scan of the latest snapshot in the table's main branch.\n\nResponses must include a valid status listed below. A \"cancelled\" status is considered invalid for this endpoint.  \n- When \"completed\" the planning operation has produced plan tasks and\n  file scan tasks that must be returned in the response (not fetched\n  later by calling fetchPlanningResult)\n\n- When \"submitted\" the response must include a plan-id used to poll\n  fetchPlanningResult to fetch the planning result when it is ready\n\n- When \"failed\" the response must be a valid error response\nThe response for a \"completed\" planning operation includes two types of tasks (file scan tasks and plan tasks) and both may be included in the response. Tasks must not be included for any other response status.\n\nResponses that include a plan-id indicate that the service is holding state or performing work for the client.\n\n- Clients should use the plan-id to fetch results from\n  fetchPlanningResult when the response status is \"submitted\"\n\n- Clients should inform the service if planning results are no longer\n  needed by calling cancelPlanning. Cancellation is not necessary after\n  fetchScanTasks has been used to fetch scan tasks for each plan task.\n",
+      "header_params": [],
+      "id": "planTableScan",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}/plan",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": {
+        "$ref": "#/components/schemas/PlanTableScanRequest"
+      },
+      "request_schema_name": "PlanTableScanRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "406",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Submit a scan for planning",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Cancels scan planning for a plan-id.\n\nThis notifies the service that it can release resources held for the scan. Clients should cancel scans that are no longer needed, either while the plan-id returns a \"submitted\" status or while there are remaining plan tasks that have not been fetched.\n\nCancellation is not necessary when\n- Scan tasks for each plan task have been fetched using fetchScanTasks\n- A plan-id has produced a \"failed\" or \"cancelled\" status from\n  planTableScan or fetchPlanningResult\n",
+      "header_params": [],
+      "id": "cancelPlanning",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}/plan/{plan-id}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `plan-id`.",
+          "location": "path",
+          "name": "plan-id",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Cancels scan planning for a plan-id",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Fetches the result of scan planning for a plan-id.\n\nResponses must include a valid status\n- When \"completed\" the planning operation has produced plan-tasks and\n  file-scan-tasks that must be returned in the response\n\n- When \"submitted\" the planning operation has not completed; the client\n  should wait to call this endpoint again to fetch a completed response\n\n- When \"failed\" the response must be a valid error response\n- When \"cancelled\" the plan-id is invalid and should be discarded\n\nThe response for a \"completed\" planning operation includes two types of tasks (file scan tasks and plan tasks) and both may be included in the response. Tasks must not be included for any other response status.\n",
+      "header_params": [],
+      "id": "fetchPlanningResult",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}/plan/{plan-id}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `plan-id`.",
+          "location": "path",
+          "name": "plan-id",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Fetches the result of scan planning for a plan-id",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Fetches result tasks for a plan task.",
+      "header_params": [],
+      "id": "fetchScanTasks",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/tables/{table}/tasks",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `table`.",
+          "location": "path",
+          "name": "table",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": {
+        "$ref": "#/components/schemas/FetchScanTasksRequest"
+      },
+      "request_schema_name": "FetchScanTasksRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Fetches result tasks for a plan task",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Return all view identifiers under this namespace",
+      "header_params": [],
+      "id": "iceberg_listViews",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/views",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "List all view identifiers underneath a given namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Create a view in the given namespace.",
+      "header_params": [],
+      "id": "iceberg_createView",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/views",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CreateViewRequest"
+      },
+      "request_schema_name": "CreateViewRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Create a view in the given namespace",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Remove a view from the catalog",
+      "header_params": [],
+      "id": "iceberg_dropView",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/views/{view}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `view`.",
+          "location": "path",
+          "name": "view",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Drop a view from the catalog",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Load a view from the catalog.\n\nThe response contains both configuration and view metadata. The configuration, if non-empty is used as additional configuration for the view that overrides catalog configuration.\n\nThe response also contains the view's full metadata, matching the view metadata JSON file.\n\nThe catalog configuration may contain credentials that should be used for subsequent requests for the view. The configuration key \"token\" is used to pass an access token to be used as a bearer token for view requests. Otherwise, a token may be passed using a RFC 8693 token type as a configuration key. For example, \"urn:ietf:params:oauth:token-type:jwt=<JWT-token>\".",
+      "header_params": [],
+      "id": "iceberg_loadView",
+      "method": "GET",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/views/{view}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `view`.",
+          "location": "path",
+          "name": "view",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Load a view from the catalog",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Check if a view exists within a given namespace. This request does not return a response body.",
+      "header_params": [],
+      "id": "iceberg_viewExists",
+      "method": "HEAD",
+      "mutating": false,
+      "path": "/v1/{prefix}/namespaces/{namespace}/views/{view}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `view`.",
+          "location": "path",
+          "name": "view",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "404",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Check if a view exists",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Commit updates to a view.",
+      "header_params": [],
+      "id": "iceberg_replaceView",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/namespaces/{namespace}/views/{view}",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `namespace`.",
+          "location": "path",
+          "name": "namespace",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "Path parameter `view`.",
+          "location": "path",
+          "name": "view",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CommitViewRequest"
+      },
+      "request_schema_name": "CommitViewRequest",
+      "responses": [
+        "200",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "500",
+        "502",
+        "503",
+        "504",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Replace a view",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Rename a table from one identifier to another. It's valid to move a table across namespaces, but the server implementation is not required to support it.",
+      "header_params": [],
+      "id": "iceberg_renameTable",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/tables/rename",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/RenameTableRequest"
+      },
+      "request_schema_name": "RenameTableRequest",
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "406",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Rename a table from its current name to a new name",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "",
+      "header_params": [],
+      "id": "iceberg_commitTransaction",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/transactions/commit",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CommitTransactionRequest"
+      },
+      "request_schema_name": "CommitTransactionRequest",
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "409",
+        "419",
+        "500",
+        "502",
+        "503",
+        "504",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Commit updates to multiple tables in an atomic operation",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "Rename a view from one identifier to another. It's valid to move a view across namespaces, but the server implementation is not required to support it.",
+      "header_params": [],
+      "id": "iceberg_renameView",
+      "method": "POST",
+      "mutating": true,
+      "path": "/v1/{prefix}/views/rename",
+      "path_params": [
+        {
+          "description": "Path parameter `prefix`.",
+          "location": "path",
+          "name": "prefix",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/RenameTableRequest"
+      },
+      "request_schema_name": "RenameTableRequest",
+      "responses": [
+        "204",
+        "400",
+        "401",
+        "403",
+        "404",
+        "406",
+        "409",
+        "419",
+        "503",
+        "5XX"
+      ],
+      "service": "iceberg",
+      "source": "spec/iceberg-rest-catalog-open-api.yaml",
+      "summary": "Rename a view from its current name to a new name",
+      "tags": [
+        "Catalog API"
+      ]
+    },
+    {
+      "description": "List all catalogs in this polaris service",
+      "header_params": [],
+      "id": "listCatalogs",
+      "method": "GET",
+      "mutating": false,
+      "path": "/catalogs",
+      "path_params": [],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "403"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "List all catalogs in this polaris service",
+      "tags": []
+    },
+    {
+      "description": "Add a new Catalog",
+      "header_params": [],
+      "id": "createCatalog",
+      "method": "POST",
+      "mutating": true,
+      "path": "/catalogs",
+      "path_params": [],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CreateCatalogRequest"
+      },
+      "request_schema_name": "CreateCatalogRequest",
+      "responses": [
+        "201",
+        "403",
+        "404",
+        "409"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Add a new Catalog",
+      "tags": []
+    },
+    {
+      "description": "Delete an existing catalog. The catalog must be empty.",
+      "header_params": [],
+      "id": "deleteCatalog",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/catalogs/{catalogName}",
+      "path_params": [
+        {
+          "description": "The name of the catalog",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Delete an existing catalog. The catalog must be empty.",
+      "tags": []
+    },
+    {
+      "description": "Get the details of a catalog",
+      "header_params": [],
+      "id": "getCatalog",
+      "method": "GET",
+      "mutating": false,
+      "path": "/catalogs/{catalogName}",
+      "path_params": [
+        {
+          "description": "The name of the catalog",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Get the details of a catalog",
+      "tags": []
+    },
+    {
+      "description": "Update an existing catalog",
+      "header_params": [],
+      "id": "updateCatalog",
+      "method": "PUT",
+      "mutating": true,
+      "path": "/catalogs/{catalogName}",
+      "path_params": [
+        {
+          "description": "The name of the catalog",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/UpdateCatalogRequest"
+      },
+      "request_schema_name": "UpdateCatalogRequest",
+      "responses": [
+        "200",
+        "403",
+        "404",
+        "409"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Update an existing catalog",
+      "tags": []
+    },
+    {
+      "description": "List existing roles in the catalog",
+      "header_params": [],
+      "id": "listCatalogRoles",
+      "method": "GET",
+      "mutating": false,
+      "path": "/catalogs/{catalogName}/catalog-roles",
+      "path_params": [
+        {
+          "description": "The catalog for which we are reading/updating roles",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "List existing roles in the catalog",
+      "tags": []
+    },
+    {
+      "description": "Create a new role in the catalog",
+      "header_params": [],
+      "id": "createCatalogRole",
+      "method": "POST",
+      "mutating": true,
+      "path": "/catalogs/{catalogName}/catalog-roles",
+      "path_params": [
+        {
+          "description": "The catalog for which we are reading/updating roles",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": {
+        "$ref": "#/components/schemas/CreateCatalogRoleRequest"
+      },
+      "request_schema_name": "CreateCatalogRoleRequest",
+      "responses": [
+        "201",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Create a new role in the catalog",
+      "tags": []
+    },
+    {
+      "description": "Delete an existing role from the catalog. All associated grants will also be deleted",
+      "header_params": [],
+      "id": "deleteCatalogRole",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/catalogs/{catalogName}/catalog-roles/{catalogRoleName}",
+      "path_params": [
+        {
+          "description": "The catalog for which we are retrieving roles",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "The name of the role",
+          "location": "path",
+          "name": "catalogRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Delete an existing role from the catalog. All associated grants will also be deleted",
+      "tags": []
+    },
+    {
+      "description": "Get the details of an existing role",
+      "header_params": [],
+      "id": "getCatalogRole",
+      "method": "GET",
+      "mutating": false,
+      "path": "/catalogs/{catalogName}/catalog-roles/{catalogRoleName}",
+      "path_params": [
+        {
+          "description": "The catalog for which we are retrieving roles",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "The name of the role",
+          "location": "path",
+          "name": "catalogRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Get the details of an existing role",
+      "tags": []
+    },
+    {
+      "description": "Update an existing role in the catalog",
+      "header_params": [],
+      "id": "updateCatalogRole",
+      "method": "PUT",
+      "mutating": true,
+      "path": "/catalogs/{catalogName}/catalog-roles/{catalogRoleName}",
+      "path_params": [
+        {
+          "description": "The catalog for which we are retrieving roles",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "The name of the role",
+          "location": "path",
+          "name": "catalogRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": {
+        "$ref": "#/components/schemas/UpdateCatalogRoleRequest"
+      },
+      "request_schema_name": "UpdateCatalogRoleRequest",
+      "responses": [
+        "200",
+        "403",
+        "404",
+        "409"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Update an existing role in the catalog",
+      "tags": []
+    },
+    {
+      "description": "List the grants the catalog role holds",
+      "header_params": [],
+      "id": "listGrantsForCatalogRole",
+      "method": "GET",
+      "mutating": false,
+      "path": "/catalogs/{catalogName}/catalog-roles/{catalogRoleName}/grants",
+      "path_params": [
+        {
+          "description": "The name of the catalog where the role will receive the grant",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "The name of the role receiving the grant (must exist)",
+          "location": "path",
+          "name": "catalogRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "List the grants the catalog role holds",
+      "tags": []
+    },
+    {
+      "description": "Delete a specific grant from the role. This may be a subset or a superset of the grants the role has. In case of a subset, the role will retain the grants not specified. If the `cascade` parameter is true, grant revocation will have a cascading effect - that is, if a principal has specific grants on a subresource, and grants are revoked on a parent resource, the grants present on the subresource will be revoked as well. By default, this behavior is disabled and grant revocation only affects the specified resource.",
+      "header_params": [],
+      "id": "revokeGrantFromCatalogRole",
+      "method": "POST",
+      "mutating": true,
+      "path": "/catalogs/{catalogName}/catalog-roles/{catalogRoleName}/grants",
+      "path_params": [
+        {
+          "description": "The name of the catalog where the role will receive the grant",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "The name of the role receiving the grant (must exist)",
+          "location": "path",
+          "name": "catalogRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [
+        {
+          "description": "If true, the grant revocation cascades to all subresources.",
+          "location": "query",
+          "name": "cascade",
+          "required": false,
+          "schema_type": "boolean"
+        }
+      ],
+      "request_body_required": false,
+      "request_schema": {
+        "$ref": "#/components/schemas/RevokeGrantRequest"
+      },
+      "request_schema_name": "RevokeGrantRequest",
+      "responses": [
+        "201",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Delete a specific grant from the role. This may be a subset or a superset of the grants the role has. In case of a subset, the role will retain the grants not specified. If the `cascade` parameter is true, grant revocation will have a cascading effect - that is, if a principal has specific grants on a subresource, and grants are revoked on a parent resource, the grants present on the subresource will be revoked as well. By default, this behavior is disabled and grant revocation only affects the specified resource.",
+      "tags": []
+    },
+    {
+      "description": "Add a new grant to the catalog role",
+      "header_params": [],
+      "id": "addGrantToCatalogRole",
+      "method": "PUT",
+      "mutating": true,
+      "path": "/catalogs/{catalogName}/catalog-roles/{catalogRoleName}/grants",
+      "path_params": [
+        {
+          "description": "The name of the catalog where the role will receive the grant",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "The name of the role receiving the grant (must exist)",
+          "location": "path",
+          "name": "catalogRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": {
+        "$ref": "#/components/schemas/AddGrantRequest"
+      },
+      "request_schema_name": "AddGrantRequest",
+      "responses": [
+        "201",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Add a new grant to the catalog role",
+      "tags": []
+    },
+    {
+      "description": "List the PrincipalRoles to which the target catalog role has been assigned",
+      "header_params": [],
+      "id": "listAssigneePrincipalRolesForCatalogRole",
+      "method": "GET",
+      "mutating": false,
+      "path": "/catalogs/{catalogName}/catalog-roles/{catalogRoleName}/principal-roles",
+      "path_params": [
+        {
+          "description": "The name of the catalog where the catalog role resides",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "The name of the catalog role",
+          "location": "path",
+          "name": "catalogRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "List the PrincipalRoles to which the target catalog role has been assigned",
+      "tags": []
+    },
+    {
+      "description": "List the principal roles",
+      "header_params": [],
+      "id": "listPrincipalRoles",
+      "method": "GET",
+      "mutating": false,
+      "path": "/principal-roles",
+      "path_params": [],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "List the principal roles",
+      "tags": []
+    },
+    {
+      "description": "Create a principal role",
+      "header_params": [],
+      "id": "createPrincipalRole",
+      "method": "POST",
+      "mutating": true,
+      "path": "/principal-roles",
+      "path_params": [],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CreatePrincipalRoleRequest"
+      },
+      "request_schema_name": "CreatePrincipalRoleRequest",
+      "responses": [
+        "201",
+        "403"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Create a principal role",
+      "tags": []
+    },
+    {
+      "description": "Remove a principal role from polaris",
+      "header_params": [],
+      "id": "deletePrincipalRole",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/principal-roles/{principalRoleName}",
+      "path_params": [
+        {
+          "description": "The principal role name",
+          "location": "path",
+          "name": "principalRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Remove a principal role from polaris",
+      "tags": []
+    },
+    {
+      "description": "Get the principal role details",
+      "header_params": [],
+      "id": "getPrincipalRole",
+      "method": "GET",
+      "mutating": false,
+      "path": "/principal-roles/{principalRoleName}",
+      "path_params": [
+        {
+          "description": "The principal role name",
+          "location": "path",
+          "name": "principalRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Get the principal role details",
+      "tags": []
+    },
+    {
+      "description": "Update an existing principalRole",
+      "header_params": [],
+      "id": "updatePrincipalRole",
+      "method": "PUT",
+      "mutating": true,
+      "path": "/principal-roles/{principalRoleName}",
+      "path_params": [
+        {
+          "description": "The principal role name",
+          "location": "path",
+          "name": "principalRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/UpdatePrincipalRoleRequest"
+      },
+      "request_schema_name": "UpdatePrincipalRoleRequest",
+      "responses": [
+        "200",
+        "403",
+        "404",
+        "409"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Update an existing principalRole",
+      "tags": []
+    },
+    {
+      "description": "Get the catalog roles mapped to the principal role",
+      "header_params": [],
+      "id": "listCatalogRolesForPrincipalRole",
+      "method": "GET",
+      "mutating": false,
+      "path": "/principal-roles/{principalRoleName}/catalog-roles/{catalogName}",
+      "path_params": [
+        {
+          "description": "The principal role name",
+          "location": "path",
+          "name": "principalRoleName",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "The name of the catalog where the catalogRoles reside",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Get the catalog roles mapped to the principal role",
+      "tags": []
+    },
+    {
+      "description": "Assign a catalog role to a principal role",
+      "header_params": [],
+      "id": "assignCatalogRoleToPrincipalRole",
+      "method": "PUT",
+      "mutating": true,
+      "path": "/principal-roles/{principalRoleName}/catalog-roles/{catalogName}",
+      "path_params": [
+        {
+          "description": "The principal role name",
+          "location": "path",
+          "name": "principalRoleName",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "The name of the catalog where the catalogRoles reside",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/GrantCatalogRoleRequest"
+      },
+      "request_schema_name": "GrantCatalogRoleRequest",
+      "responses": [
+        "201",
+        "403"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Assign a catalog role to a principal role",
+      "tags": []
+    },
+    {
+      "description": "Remove a catalog role from a principal role",
+      "header_params": [],
+      "id": "revokeCatalogRoleFromPrincipalRole",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/principal-roles/{principalRoleName}/catalog-roles/{catalogName}/{catalogRoleName}",
+      "path_params": [
+        {
+          "description": "The principal role name",
+          "location": "path",
+          "name": "principalRoleName",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "The name of the catalog that contains the role to revoke",
+          "location": "path",
+          "name": "catalogName",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "The name of the catalog role that should be revoked",
+          "location": "path",
+          "name": "catalogRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Remove a catalog role from a principal role",
+      "tags": []
+    },
+    {
+      "description": "List the Principals to whom the target principal role has been assigned",
+      "header_params": [],
+      "id": "listAssigneePrincipalsForPrincipalRole",
+      "method": "GET",
+      "mutating": false,
+      "path": "/principal-roles/{principalRoleName}/principals",
+      "path_params": [
+        {
+          "description": "The principal role name",
+          "location": "path",
+          "name": "principalRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "List the Principals to whom the target principal role has been assigned",
+      "tags": []
+    },
+    {
+      "description": "List the principals for the current catalog",
+      "header_params": [],
+      "id": "listPrincipals",
+      "method": "GET",
+      "mutating": false,
+      "path": "/principals",
+      "path_params": [],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "List the principals for the current catalog",
+      "tags": []
+    },
+    {
+      "description": "Create a principal",
+      "header_params": [],
+      "id": "createPrincipal",
+      "method": "POST",
+      "mutating": true,
+      "path": "/principals",
+      "path_params": [],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/CreatePrincipalRequest"
+      },
+      "request_schema_name": "CreatePrincipalRequest",
+      "responses": [
+        "201",
+        "403"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Create a principal",
+      "tags": []
+    },
+    {
+      "description": "Remove a principal from polaris",
+      "header_params": [],
+      "id": "deletePrincipal",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/principals/{principalName}",
+      "path_params": [
+        {
+          "description": "The principal name",
+          "location": "path",
+          "name": "principalName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Remove a principal from polaris",
+      "tags": []
+    },
+    {
+      "description": "Get the principal details",
+      "header_params": [],
+      "id": "getPrincipal",
+      "method": "GET",
+      "mutating": false,
+      "path": "/principals/{principalName}",
+      "path_params": [
+        {
+          "description": "The principal name",
+          "location": "path",
+          "name": "principalName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Get the principal details",
+      "tags": []
+    },
+    {
+      "description": "Update an existing principal",
+      "header_params": [],
+      "id": "updatePrincipal",
+      "method": "PUT",
+      "mutating": true,
+      "path": "/principals/{principalName}",
+      "path_params": [
+        {
+          "description": "The principal name",
+          "location": "path",
+          "name": "principalName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/UpdatePrincipalRequest"
+      },
+      "request_schema_name": "UpdatePrincipalRequest",
+      "responses": [
+        "200",
+        "403",
+        "404",
+        "409"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Update an existing principal",
+      "tags": []
+    },
+    {
+      "description": "List the roles assigned to the principal",
+      "header_params": [],
+      "id": "listPrincipalRolesAssigned",
+      "method": "GET",
+      "mutating": false,
+      "path": "/principals/{principalName}/principal-roles",
+      "path_params": [
+        {
+          "description": "The name of the target principal",
+          "location": "path",
+          "name": "principalName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "List the roles assigned to the principal",
+      "tags": []
+    },
+    {
+      "description": "Add a role to the principal",
+      "header_params": [],
+      "id": "assignPrincipalRole",
+      "method": "PUT",
+      "mutating": true,
+      "path": "/principals/{principalName}/principal-roles",
+      "path_params": [
+        {
+          "description": "The name of the target principal",
+          "location": "path",
+          "name": "principalName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": true,
+      "request_schema": {
+        "$ref": "#/components/schemas/GrantPrincipalRoleRequest"
+      },
+      "request_schema_name": "GrantPrincipalRoleRequest",
+      "responses": [
+        "201",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Add a role to the principal",
+      "tags": []
+    },
+    {
+      "description": "Remove a role from a catalog principal",
+      "header_params": [],
+      "id": "revokePrincipalRole",
+      "method": "DELETE",
+      "mutating": true,
+      "path": "/principals/{principalName}/principal-roles/{principalRoleName}",
+      "path_params": [
+        {
+          "description": "The name of the target principal",
+          "location": "path",
+          "name": "principalName",
+          "required": true,
+          "schema_type": "string"
+        },
+        {
+          "description": "The name of the role",
+          "location": "path",
+          "name": "principalRoleName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "204",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Remove a role from a catalog principal",
+      "tags": []
+    },
+    {
+      "description": "Reset a principal's credentials to a new set. By default, the system generates random credentials unless explicitly allowed to accept user-provided credentials via configuration.   This API is *not* idempotent and will return the newly created credentials.",
+      "header_params": [],
+      "id": "resetCredentials",
+      "method": "POST",
+      "mutating": true,
+      "path": "/principals/{principalName}/reset",
+      "path_params": [
+        {
+          "description": "The principal's name",
+          "location": "path",
+          "name": "principalName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": {
+        "$ref": "#/components/schemas/ResetPrincipalRequest"
+      },
+      "request_schema_name": "ResetPrincipalRequest",
+      "responses": [
+        "200",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Reset a principal's credentials to a new set. By default, the system generates random credentials unless explicitly allowed to accept user-provided credentials via configuration.   This API is *not* idempotent and will return the newly created credentials.",
+      "tags": []
+    },
+    {
+      "description": "Rotate a principal's credentials. The new credentials will be returned in the response. This is the only API, aside from createPrincipal, that returns the user's credentials. This API is *not* idempotent.",
+      "header_params": [],
+      "id": "rotateCredentials",
+      "method": "POST",
+      "mutating": true,
+      "path": "/principals/{principalName}/rotate",
+      "path_params": [
+        {
+          "description": "The user name",
+          "location": "path",
+          "name": "principalName",
+          "required": true,
+          "schema_type": "string"
+        }
+      ],
+      "query_params": [],
+      "request_body_required": false,
+      "request_schema": null,
+      "request_schema_name": null,
+      "responses": [
+        "200",
+        "403",
+        "404"
+      ],
+      "service": "management",
+      "source": "spec/polaris-management-service.yml",
+      "summary": "Rotate a principal's credentials. The new credentials will be returned in the response. This is the only API, aside from createPrincipal, that returns the user's credentials. This API is *not* idempotent.",
+      "tags": []
+    }
+  ],
+  "polaris_release": "apache-polaris-1.5.0",
+  "source_url": "https://github.com/apache/polaris/tree/apache-polaris-1.5.0/spec"
+}

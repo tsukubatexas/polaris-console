@@ -1,0 +1,1 @@
+"""Generated Polaris operation registry."""
