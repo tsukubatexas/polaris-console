@@ -1,0 +1,45 @@
+image:
+  repository: ghcr.io/tsukubatexas/polaris-console
+  tag: "0.1.0"
+
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: polaris-console.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: polaris-console-tls
+      hosts:
+        - polaris-console.example.com
+
+config:
+  allowedOrigins:
+    - https://polaris-console.example.com
+  allowedTargetHosts:
+    - polaris.example.com
+    - login.microsoftonline.com
+
+networkPolicy:
+  enabled: true
+  egress:
+    extraRules:
+      - to:
+          - ipBlock:
+              cidr: 10.0.0.0/8
+        ports:
+          - protocol: TCP
+            port: 8181
+          - protocol: TCP
+            port: 443
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: kube-system
+        ports:
+          - protocol: UDP
+            port: 53
+          - protocol: TCP
+            port: 53

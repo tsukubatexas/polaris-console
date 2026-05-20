@@ -16,6 +16,8 @@ frontend/dist/
 backend/app/generated/*.tmp
 .agent/
 .agentic/
+.helm-packages/
+.helm-rendered/
 specs/
 .coverage
 htmlcov/

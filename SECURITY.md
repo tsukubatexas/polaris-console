@@ -17,6 +17,8 @@ Do not open public issues that include tokens, OAuth client secrets, Polaris URL
 - The backend forwards only the minimum headers required for Polaris calls.
 - Production deployments should use HTTPS and set `POLARIS_CONSOLE_COOKIE_SECURE=true`.
 - Production deployments should set `POLARIS_CONSOLE_ALLOWED_TARGET_HOSTS`.
+- Helm deployments fail closed unless `config.allowedTargetHosts` is set or local development mode is explicitly enabled.
+- The published container image runs as a non-root user and the Helm chart disables privilege escalation by default.
 - Scheduled OpenAI repair jobs must use a scoped `OPENAI_API_KEY` secret and protected branch rules.
 
 ## Secret Handling

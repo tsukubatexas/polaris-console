@@ -111,7 +111,7 @@ POLARIS_SPEC_SOURCE_DIR=/path/to/apache-polaris/spec \
 flowchart TD
   Schedule["Weekly schedule"] --> Fetch["Fetch latest Polaris specs"]
   Fetch --> Generate["Generate operation metadata"]
-  Generate --> Checks["Backend tests + frontend build + pinning checks"]
+  Generate --> Checks["Backend tests + frontend build + Helm chart checks + pinning checks"]
   Checks -->|green| PR["Open update PR when files changed"]
   Checks -->|red| Repair["OpenAI repair loop"]
   Repair --> Checks
@@ -121,9 +121,43 @@ Workflows:
 
 - `ci`: validates Python, React, generated registries, tests, and pinned actions.
 - `agentic update`: weekly OpenAPI refresh with optional OpenAI repair via `OPENAI_API_KEY`.
+- `container`: publishes the hardened container image to GitHub Container Registry.
+- `helm`: validates and publishes the public Helm repository on `gh-pages`.
 - `monthly hygiene`: closes stale automated PRs.
 - `quarterly cleanup`: deeper dependency and generated-surface cleanup.
 - `release`: Release Please keeps changelog and GitHub releases moving.
+
+## Helm Install
+
+The chart is intentionally fail-closed: production renders require an explicit Polaris/OAuth host allowlist so the backend cannot become a generic server-side request proxy.
+
+After the `helm` workflow has published the chart, install from the public raw GitHub chart index:
+
+```bash
+helm repo add polaris-console https://raw.githubusercontent.com/tsukubatexas/polaris-console/gh-pages/charts
+helm repo update
+helm upgrade --install polaris-console polaris-console/polaris-console \
+  --namespace polaris-console \
+  --create-namespace \
+  --set config.allowedTargetHosts="{polaris.example.com,login.microsoftonline.com}" \
+  --set config.allowedOrigins="{https://polaris-console.example.com}"
+```
+
+Local development can opt into the relaxed profile:
+
+```bash
+helm template polaris-console charts/polaris-console -f charts/polaris-console/values-dev.yaml
+```
+
+Chart security defaults:
+
+- Runs as UID/GID `10001`, non-root, with `allowPrivilegeEscalation=false`.
+- Drops all Linux capabilities and uses `RuntimeDefault` seccomp.
+- Uses read-only root filesystem with an explicit `/tmp` `emptyDir`.
+- Creates or reuses a Kubernetes Secret for the backend session secret.
+- Sets `POLARIS_CONSOLE_COOKIE_SECURE=true` by default.
+- Requires `POLARIS_CONSOLE_ALLOWED_TARGET_HOSTS` unless local development mode is explicit.
+- Enables a NetworkPolicy by default; production deployments should add explicit egress rules for Polaris, OAuth, DNS, and observability endpoints.
 
 ## Security Posture
 

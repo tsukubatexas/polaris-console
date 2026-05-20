@@ -1,0 +1,12 @@
+Polaris Console has been installed.
+
+Security defaults:
+- The container runs as non-root with privilege escalation disabled.
+- Session material is stored in a Kubernetes Secret.
+- cookieSecure defaults to true.
+- allowedTargetHosts must be explicitly configured unless allowAnyTargetHost=true is set for local development.
+
+Service:
+  {{ include "polaris-console.fullname" . }}:{{ .Values.service.port }}
+
+If ingress is enabled, open the configured HTTPS host.

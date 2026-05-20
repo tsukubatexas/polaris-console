@@ -32,3 +32,5 @@ fi
 npm run typecheck
 npm run build
 popd >/dev/null
+
+scripts/helm_checks.sh

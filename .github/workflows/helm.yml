@@ -1,0 +1,66 @@
+name: helm
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - charts/**
+      - scripts/helm_checks.sh
+      - Dockerfile
+      - .github/workflows/helm.yml
+  pull_request:
+    paths:
+      - charts/**
+      - scripts/helm_checks.sh
+      - Dockerfile
+      - .github/workflows/helm.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  chart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
+        with:
+          fetch-depth: 0
+      - name: Check chart
+        run: scripts/helm_checks.sh
+      - name: Publish public Helm repository
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          CHART_REPO_URL: https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/charts
+        run: |
+          set -euo pipefail
+          worktree="$(mktemp -d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git worktree add "$worktree" gh-pages
+          else
+            git worktree add --orphan "$worktree" gh-pages
+            rm -rf "$worktree"/*
+          fi
+
+          mkdir -p "$worktree/charts"
+          cp .helm-packages/*.tgz "$worktree/charts/"
+          if [[ -f "$worktree/charts/index.yaml" ]]; then
+            helm repo index "$worktree/charts" --url "$CHART_REPO_URL" --merge "$worktree/charts/index.yaml"
+          else
+            helm repo index "$worktree/charts" --url "$CHART_REPO_URL"
+          fi
+          touch "$worktree/.nojekyll"
+
+          cd "$worktree"
+          git add .nojekyll charts
+          if git diff --cached --quiet; then
+            echo "No Helm repository changes to publish."
+            exit 0
+          fi
+          git commit -m "docs: publish Helm chart"
+          git push origin HEAD:gh-pages

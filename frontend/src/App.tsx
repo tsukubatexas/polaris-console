@@ -49,6 +49,29 @@ type NamedEntity = {
   properties?: Record<string, string>;
 };
 
+type CatalogNamespaceTree = {
+  name: string;
+  tables: string[];
+};
+
+type CatalogContent = {
+  loading: boolean;
+  namespaces: CatalogNamespaceTree[];
+  error?: string;
+};
+
+type CatalogObjectSelection =
+  | { type: "catalog"; catalog: string }
+  | { type: "namespace"; catalog: string; namespace: string }
+  | { type: "table"; catalog: string; namespace: string; table: string };
+
+type NamespaceNode = {
+  name: string;
+  path: string;
+  children: NamespaceNode[];
+  tables: string[];
+};
+
 const CATALOG_PRIVILEGES = [
   "CATALOG_MANAGE_ACCESS",
   "CATALOG_MANAGE_CONTENT",
@@ -132,6 +155,90 @@ function grantSummary(grant: AnyRecord) {
   return `${grant.type ?? "catalog"} · ${target} · ${grant.privilege ?? ""}`;
 }
 
+function grantTargetLabel(grant: AnyRecord) {
+  if ((grant.type ?? "catalog") === "table") return `${grantNamespace(grant)}.${grantTableName(grant)}`;
+  if (grant.type === "namespace") return grantNamespace(grant);
+  return "catalog";
+}
+
+function buildNamespaceNodes(namespaces: CatalogNamespaceTree[]) {
+  const root: NamespaceNode[] = [];
+
+  namespaces.forEach((namespace) => {
+    const parts = namespace.name.split(".").filter(Boolean);
+    let siblings = root;
+    let path = "";
+
+    parts.forEach((part, index) => {
+      path = path ? `${path}.${part}` : part;
+      let node = siblings.find((candidate) => candidate.name === part);
+      if (!node) {
+        node = { name: part, path, children: [], tables: [] };
+        siblings.push(node);
+      }
+      if (index === parts.length - 1) {
+        node.tables = [...new Set([...node.tables, ...namespace.tables])].sort();
+      }
+      siblings = node.children;
+    });
+  });
+
+  function sort(nodes: NamespaceNode[]) {
+    nodes.sort((left, right) => left.name.localeCompare(right.name));
+    nodes.forEach((node) => sort(node.children));
+  }
+
+  sort(root);
+  return root;
+}
+
+function selectionLabel(selection: CatalogObjectSelection | null | undefined) {
+  if (!selection) return "Catalog";
+  if (selection.type === "catalog") return `Catalog: ${selection.catalog}`;
+  if (selection.type === "namespace") return `Namespace: ${selection.namespace}`;
+  return `Table: ${selection.namespace}.${selection.table}`;
+}
+
+function grantNamespace(grant: AnyRecord) {
+  return namespaceName(grant.namespace);
+}
+
+function grantTableName(grant: AnyRecord) {
+  return String(grant.tableName ?? grant.table ?? "");
+}
+
+function matchingGrantScope(selection: CatalogObjectSelection, grant: AnyRecord) {
+  const type = grant.type ?? "catalog";
+  if (type === "catalog") {
+    return selection.type === "catalog" ? "direct catalog grant" : "catalog-level grant";
+  }
+  if (type === "namespace") {
+    const sameNamespace = grantNamespace(grant) === (selection.type === "catalog" ? "" : selection.namespace);
+    if (!sameNamespace) return null;
+    return selection.type === "namespace" ? "direct namespace grant" : "namespace-level grant";
+  }
+  if (type === "table" && selection.type === "table") {
+    const sameNamespace = grantNamespace(grant) === selection.namespace;
+    const sameTable = grantTableName(grant) === selection.table;
+    return sameNamespace && sameTable ? "direct table grant" : null;
+  }
+  return null;
+}
+
+function relevantGrantRows(
+  selection: CatalogObjectSelection | null | undefined,
+  roleGrants: Record<string, AnyRecord[]>
+) {
+  if (!selection) return [];
+
+  return Object.entries(roleGrants).flatMap(([roleName, grants]) =>
+    grants.flatMap((grant) => {
+      const scope = matchingGrantScope(selection, grant);
+      return scope ? [{ roleName, grant, scope }] : [];
+    })
+  );
+}
+
 function operationCounts() {
   return operations.reduce<Record<string, number>>((acc, operation) => {
     acc[operation.service] = (acc[operation.service] ?? 0) + 1;
@@ -155,8 +262,10 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [catalogs, setCatalogs] = useState<Catalog[]>([]);
+  const [catalogContents, setCatalogContents] = useState<Record<string, CatalogContent>>({});
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [activeCatalog, setActiveCatalog] = useState("");
+  const [selectedObject, setSelectedObject] = useState<CatalogObjectSelection | null>(null);
 
   const selected = useMemo(
     () => operations.find((operation) => operation.id === selectedId) ?? operations[0],
@@ -210,6 +319,18 @@ export function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId]);
 
+  useEffect(() => {
+    if (!activeCatalog) return;
+    if (!selectedObject || selectedObject.catalog !== activeCatalog) {
+      setSelectedObject({ type: "catalog", catalog: activeCatalog });
+    }
+  }, [activeCatalog, selectedObject]);
+
+  function selectCatalogObject(selection: CatalogObjectSelection) {
+    setActiveCatalog(selection.catalog);
+    setSelectedObject(selection);
+  }
+
   async function executePolaris(
     operationId: string,
     payload: {
@@ -249,9 +370,65 @@ export function App() {
           ? current
           : nextCatalogs[0]?.name ?? ""
       );
+      await refreshCatalogContents(nextCatalogs);
     } catch (err) {
       setCatalogError(err instanceof Error ? err.message : "Could not load catalogs");
     }
+  }
+
+  async function refreshCatalogContents(nextCatalogs = catalogs) {
+    if (!session.connected || nextCatalogs.length === 0) {
+      setCatalogContents({});
+      return;
+    }
+
+    const catalogNames = nextCatalogs.map((catalog) => catalog.name);
+    setCatalogContents((current) =>
+      catalogNames.reduce<Record<string, CatalogContent>>((acc, name) => {
+        acc[name] = { namespaces: current[name]?.namespaces ?? [], loading: true };
+        return acc;
+      }, {})
+    );
+
+    const entries = await Promise.all(
+      catalogNames.map(async (catalogName) => {
+        const namespaceResult = await executePolaris("iceberg_listNamespaces", {
+          path_params: { prefix: catalogName }
+        });
+        if (!namespaceResult.ok) {
+          return [
+            catalogName,
+            {
+              loading: false,
+              namespaces: [],
+              error: `Polaris HTTP ${namespaceResult.status_code}`
+            }
+          ] as const;
+        }
+
+        const namespaceBody = objectBody(namespaceResult);
+        const namespaceNames = Array.isArray(namespaceBody.namespaces)
+          ? namespaceBody.namespaces.map(namespaceName)
+          : [];
+
+        const namespaces = await Promise.all(
+          namespaceNames.map(async (name) => {
+            const tablesResult = await executePolaris("iceberg_listTables", {
+              path_params: { prefix: catalogName, namespace: name }
+            });
+            const tablesBody = objectBody(tablesResult);
+            const tables = Array.isArray(tablesBody.identifiers)
+              ? tablesBody.identifiers.map((item: AnyRecord) => String(item.name ?? item.table ?? "")).filter(Boolean)
+              : [];
+            return { name, tables };
+          })
+        );
+
+        return [catalogName, { loading: false, namespaces }] as const;
+      })
+    );
+
+    setCatalogContents(Object.fromEntries(entries));
   }
 
   async function runOperation(operation = selected) {
@@ -367,11 +544,13 @@ export function App() {
             <PolarisTree
               session={session}
               catalogs={catalogs}
+              catalogContents={catalogContents}
               activeCatalog={activeCatalog}
+              selectedObject={selectedObject}
               activeView={view}
               catalogError={catalogError}
               setView={setView}
-              setActiveCatalog={setActiveCatalog}
+              selectCatalogObject={selectCatalogObject}
               openConnect={() => setConnectOpen(true)}
             />
             <div className="hierarchy-content">
@@ -379,6 +558,7 @@ export function App() {
                 <Overview
                   session={session}
                   catalogs={catalogs}
+                  catalogContents={catalogContents}
                   summary={summary}
                   activity={activity}
                   catalogError={catalogError}
@@ -392,8 +572,11 @@ export function App() {
                 <CatalogsView
                   session={session}
                   catalogs={catalogs}
+                  catalogContents={catalogContents}
                   activeCatalog={activeCatalog}
+                  selectedObject={selectedObject}
                   setActiveCatalog={setActiveCatalog}
+                  selectCatalogObject={selectCatalogObject}
                   refreshCatalogs={refreshCatalogs}
                   executePolaris={executePolaris}
                   busyKey={busyKey}
@@ -472,26 +655,30 @@ export function App() {
 function PolarisTree({
   session,
   catalogs,
+  catalogContents,
   activeCatalog,
+  selectedObject,
   activeView,
   catalogError,
   setView,
-  setActiveCatalog,
+  selectCatalogObject,
   openConnect
 }: {
   session: PolarisSession;
   catalogs: Catalog[];
+  catalogContents: Record<string, CatalogContent>;
   activeCatalog: string;
+  selectedObject: CatalogObjectSelection | null;
   activeView: View;
   catalogError: string | null;
   setView: (view: View) => void;
-  setActiveCatalog: (name: string) => void;
+  selectCatalogObject: (selection: CatalogObjectSelection) => void;
   openConnect: () => void;
 }) {
   const realm = session.realm || "POLARIS";
 
   function go(view: View, catalogName?: string) {
-    if (catalogName) setActiveCatalog(catalogName);
+    if (catalogName) selectCatalogObject({ type: "catalog", catalog: catalogName });
     setView(view);
   }
 
@@ -522,44 +709,42 @@ function PolarisTree({
           <small>{catalogs.length}</small>
         </summary>
         <div className="tree-children">
-          {catalogs.map((catalog) => (
-            <div className="tree-branch" key={catalog.name}>
-              <button
-                className={
-                  activeView === "catalogs" && activeCatalog === catalog.name
-                    ? "tree-node tree-active"
-                    : "tree-node"
-                }
-                onClick={() => go("catalogs", catalog.name)}
-              >
-                <Database size={16} />
-                <span>
-                  <strong>{catalog.name}</strong>
-                  <small>{catalog.properties?.["default-base-location"] ?? catalog.type ?? "catalog"}</small>
-                </span>
-              </button>
-              <div className="tree-leaves">
-                <button onClick={() => go("catalogs", catalog.name)}>
-                  <ShieldCheck size={14} />
-                  <span>Storage</span>
-                </button>
+          {catalogs.map((catalog) => {
+            const content = catalogContents[catalog.name];
+            const namespaceCount = content?.namespaces.length ?? 0;
+            const tableCount =
+              content?.namespaces.reduce((total, namespace) => total + namespace.tables.length, 0) ?? 0;
+
+            return (
+              <div className="tree-branch" key={catalog.name}>
                 <button
-                  className={activeView === "lakehouse" && activeCatalog === catalog.name ? "tree-active" : ""}
-                  onClick={() => go("lakehouse", catalog.name)}
+                  className={
+                    activeView === "catalogs" && activeCatalog === catalog.name
+                      ? "tree-node tree-active"
+                      : "tree-node"
+                  }
+                  onClick={() => go("catalogs", catalog.name)}
                 >
-                  <FolderTree size={14} />
-                  <span>Namespaces</span>
+                  <Database size={16} />
+                  <span>
+                    <strong>{catalog.name}</strong>
+                    <small>
+                      {namespaceCount} namespaces · {tableCount} tables
+                    </small>
+                  </span>
                 </button>
-                <button
-                  className={activeView === "lakehouse" && activeCatalog === catalog.name ? "tree-active" : ""}
-                  onClick={() => go("lakehouse", catalog.name)}
-                >
-                  <Table2 size={14} />
-                  <span>Tables</span>
-                </button>
+                <CatalogObjectTree
+                  catalogName={catalog.name}
+                  content={content}
+                  selectedObject={selectedObject}
+                  onSelect={(selection) => {
+                    selectCatalogObject(selection);
+                    setView("catalogs");
+                  }}
+                />
               </div>
-            </div>
-          ))}
+            );
+          })}
           {catalogs.length === 0 && <div className="tree-empty">No catalogs</div>}
         </div>
       </details>
@@ -604,9 +789,177 @@ function PolarisTree({
   );
 }
 
+function CatalogObjectTree({
+  catalogName,
+  content,
+  selectedObject,
+  onSelect
+}: {
+  catalogName: string;
+  content?: CatalogContent;
+  selectedObject: CatalogObjectSelection | null;
+  onSelect: (selection: CatalogObjectSelection) => void;
+}) {
+  if (!content || content.loading) {
+    return <div className="tree-empty">Loading objects</div>;
+  }
+  if (content.error) {
+    return <div className="tree-error">{content.error}</div>;
+  }
+
+  const nodes = buildNamespaceNodes(content.namespaces);
+  if (nodes.length === 0) {
+    return <div className="tree-empty">No namespaces</div>;
+  }
+
+  return (
+    <div className="tree-object-list">
+      {nodes.map((node) => (
+        <NamespaceTreeNode
+          key={node.path}
+          catalogName={catalogName}
+          node={node}
+          selectedObject={selectedObject}
+          onSelect={onSelect}
+        />
+      ))}
+    </div>
+  );
+}
+
+function NamespaceTreeNode({
+  catalogName,
+  node,
+  selectedObject,
+  onSelect
+}: {
+  catalogName: string;
+  node: NamespaceNode;
+  selectedObject: CatalogObjectSelection | null;
+  onSelect: (selection: CatalogObjectSelection) => void;
+}) {
+  const childNamespaceCount = node.children.length;
+  const tableCount = node.tables.length;
+  const namespaceSelected =
+    selectedObject?.catalog === catalogName &&
+    (selectedObject.type === "namespace" || selectedObject.type === "table") &&
+    selectedObject.namespace === node.path;
+
+  return (
+    <details className="tree-namespace" open>
+      <summary
+        className={namespaceSelected ? "tree-object-selected" : ""}
+        onClick={() => onSelect({ type: "namespace", catalog: catalogName, namespace: node.path })}
+      >
+        <FolderTree size={14} />
+        <span>
+          <strong>{node.name}</strong>
+          <small>
+            {childNamespaceCount > 0 && `${childNamespaceCount} namespaces · `}
+            {tableCount} tables
+          </small>
+        </span>
+      </summary>
+      <div className="tree-object-children">
+        {node.children.map((child) => (
+          <NamespaceTreeNode
+            key={child.path}
+            catalogName={catalogName}
+            node={child}
+            selectedObject={selectedObject}
+            onSelect={onSelect}
+          />
+        ))}
+        {node.tables.map((table) => (
+          <button
+            className={
+              selectedObject?.type === "table" &&
+              selectedObject.catalog === catalogName &&
+              selectedObject.namespace === node.path &&
+              selectedObject.table === table
+                ? "tree-table-node tree-object-selected"
+                : "tree-table-node"
+            }
+            key={`${node.path}.${table}`}
+            onClick={() => onSelect({ type: "table", catalog: catalogName, namespace: node.path, table })}
+          >
+            <Table2 size={14} />
+            <span>{table}</span>
+          </button>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+function CatalogDetailNamespaceNode({
+  catalogName,
+  node,
+  selectedObject,
+  selectCatalogObject
+}: {
+  catalogName: string;
+  node: NamespaceNode;
+  selectedObject: CatalogObjectSelection | null;
+  selectCatalogObject: (selection: CatalogObjectSelection) => void;
+}) {
+  const namespaceSelected =
+    selectedObject?.catalog === catalogName &&
+    (selectedObject.type === "namespace" || selectedObject.type === "table") &&
+    selectedObject.namespace === node.path;
+
+  return (
+    <details className="catalog-namespace" open>
+      <summary
+        className={namespaceSelected ? "catalog-object-selected" : ""}
+        onClick={() => selectCatalogObject({ type: "namespace", catalog: catalogName, namespace: node.path })}
+      >
+        <FolderTree size={16} />
+        <span>
+          <strong>{node.name}</strong>
+          <small>
+            {node.children.length > 0 && `${node.children.length} namespaces · `}
+            {node.tables.length} tables
+          </small>
+        </span>
+      </summary>
+      <div className="catalog-table-list">
+        {node.children.map((child) => (
+          <CatalogDetailNamespaceNode
+            key={child.path}
+            catalogName={catalogName}
+            node={child}
+            selectedObject={selectedObject}
+            selectCatalogObject={selectCatalogObject}
+          />
+        ))}
+        {node.tables.map((table) => (
+          <button
+            className={
+              selectedObject?.type === "table" &&
+              selectedObject.catalog === catalogName &&
+              selectedObject.namespace === node.path &&
+              selectedObject.table === table
+                ? "catalog-table-row catalog-object-selected"
+                : "catalog-table-row"
+            }
+            key={table}
+            onClick={() => selectCatalogObject({ type: "table", catalog: catalogName, namespace: node.path, table })}
+          >
+            <Table2 size={15} />
+            <span>{table}</span>
+          </button>
+        ))}
+        {node.children.length === 0 && node.tables.length === 0 && <EmptyState label="No tables in this namespace" />}
+      </div>
+    </details>
+  );
+}
+
 function Overview({
   session,
   catalogs,
+  catalogContents,
   catalogError,
   onRefresh,
   setView,
@@ -614,6 +967,7 @@ function Overview({
 }: {
   session: PolarisSession;
   catalogs: Catalog[];
+  catalogContents: Record<string, CatalogContent>;
   summary: {
     release: string;
     count: number;
@@ -680,36 +1034,71 @@ function Overview({
             </span>
           </summary>
           <div className="overview-tree-body">
-            {catalogs.map((catalog) => (
-              <div className="overview-branch" key={catalog.name}>
-                <button className="overview-node" onClick={() => go("catalogs", catalog.name)}>
-                  <Database size={16} />
-                  <span>
-                    <strong>Catalog: {catalog.name}</strong>
-                    <small>{catalog.properties?.["default-base-location"] ?? catalog.type ?? "catalog"}</small>
-                  </span>
-                </button>
-                <div className="overview-level-label">Inside this catalog</div>
-                <div className="overview-leaves">
-                  <button onClick={() => go("catalogs", catalog.name)}>
-                    <ShieldCheck size={14} />
-                    <span>Storage Config</span>
+            {catalogs.map((catalog) => {
+              const content = catalogContents[catalog.name];
+              const tableCount = content?.namespaces.reduce((total, namespace) => total + namespace.tables.length, 0) ?? 0;
+
+              return (
+                <div className="overview-branch" key={catalog.name}>
+                  <button className="overview-node" onClick={() => go("catalogs", catalog.name)}>
+                    <Database size={16} />
+                    <span>
+                      <strong>Catalog: {catalog.name}</strong>
+                      <small>{catalog.properties?.["default-base-location"] ?? catalog.type ?? "catalog"}</small>
+                    </span>
                   </button>
-                  <button onClick={() => go("catalogs", catalog.name)}>
-                    <KeyRound size={14} />
-                    <span>Catalog Roles</span>
-                  </button>
-                  <button onClick={() => go("lakehouse", catalog.name)}>
-                    <FolderTree size={14} />
-                    <span>Namespaces</span>
-                  </button>
-                  <button onClick={() => go("lakehouse", catalog.name)}>
-                    <Table2 size={14} />
-                    <span>Tables in Namespaces</span>
-                  </button>
+                  <div className="overview-level-label">
+                    {content?.loading
+                      ? "Loading namespaces and tables"
+                      : `${content?.namespaces.length ?? 0} namespaces · ${tableCount} tables`}
+                  </div>
+                  <div className="overview-leaves">
+                    <button onClick={() => go("catalogs", catalog.name)}>
+                      <ShieldCheck size={14} />
+                      <span>Storage Config</span>
+                    </button>
+                    <button onClick={() => go("catalogs", catalog.name)}>
+                      <KeyRound size={14} />
+                      <span>Catalog Roles</span>
+                    </button>
+                    <button onClick={() => go("lakehouse", catalog.name)}>
+                      <FolderTree size={14} />
+                      <span>Namespaces</span>
+                    </button>
+                    <button onClick={() => go("lakehouse", catalog.name)}>
+                      <Table2 size={14} />
+                      <span>Tables</span>
+                    </button>
+                  </div>
+                  {content?.error && <div className="tree-error">{content.error}</div>}
+                  {content && !content.loading && (
+                    <div className="overview-namespaces">
+                      {content.namespaces.map((namespace) => (
+                        <details key={namespace.name} className="overview-namespace" open>
+                          <summary onClick={() => go("lakehouse", catalog.name)}>
+                            <FolderTree size={15} />
+                            <span>
+                              <strong>{namespace.name}</strong>
+                              <small>{namespace.tables.length} tables</small>
+                            </span>
+                          </summary>
+                          <div className="overview-tables">
+                            {namespace.tables.map((table) => (
+                              <button key={table} onClick={() => go("lakehouse", catalog.name)}>
+                                <Table2 size={14} />
+                                <span>{table}</span>
+                              </button>
+                            ))}
+                            {namespace.tables.length === 0 && <span className="overview-empty">No tables yet</span>}
+                          </div>
+                        </details>
+                      ))}
+                      {content.namespaces.length === 0 && <span className="overview-empty">No namespaces yet</span>}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {catalogs.length === 0 && <EmptyState label="No catalogs loaded" />}
           </div>
         </details>
@@ -783,19 +1172,26 @@ function Overview({
 function CatalogsView({
   session,
   catalogs,
+  catalogContents,
   activeCatalog,
+  selectedObject,
   setActiveCatalog,
+  selectCatalogObject,
   refreshCatalogs,
   executePolaris,
   busyKey,
   openConnect
 }: DomainProps & {
   catalogs: Catalog[];
+  catalogContents: Record<string, CatalogContent>;
   activeCatalog: string;
+  selectedObject: CatalogObjectSelection | null;
   setActiveCatalog: (name: string) => void;
+  selectCatalogObject: (selection: CatalogObjectSelection) => void;
   refreshCatalogs: () => void;
 }) {
   const [roles, setRoles] = useState<NamedEntity[]>([]);
+  const [roleGrants, setRoleGrants] = useState<Record<string, AnyRecord[]>>({});
   const [message, setMessage] = useState<string | null>(null);
   const [newCatalog, setNewCatalog] = useState(() => {
     const seed = `console_catalog_${Date.now()}`;
@@ -811,6 +1207,16 @@ function CatalogsView({
   const [roleName, setRoleName] = useState(`console_role_${Date.now()}`);
 
   const selected = catalogs.find((catalog) => catalog.name === activeCatalog) ?? catalogs[0];
+  const selectedContent = selected ? catalogContents[selected.name] : undefined;
+  const selectedTableCount =
+    selectedContent?.namespaces.reduce((total, namespace) => total + namespace.tables.length, 0) ?? 0;
+  const objectSelection =
+    selected && selectedObject?.catalog === selected.name
+      ? selectedObject
+      : selected
+        ? ({ type: "catalog", catalog: selected.name } as CatalogObjectSelection)
+        : null;
+  const objectGrantRows = relevantGrantRows(objectSelection, roleGrants);
 
   useEffect(() => {
     if (!activeCatalog && catalogs.length) setActiveCatalog(catalogs[0].name);
@@ -825,7 +1231,22 @@ function CatalogsView({
     const result = await executePolaris("listCatalogRoles", {
       path_params: { catalogName }
     });
-    setRoles(rolesFromBody(result));
+    const nextRoles = rolesFromBody(result);
+    setRoles(nextRoles);
+    await loadRoleGrants(catalogName, nextRoles);
+  }
+
+  async function loadRoleGrants(catalogName: string, nextRoles = roles) {
+    const entries = await Promise.all(
+      nextRoles.map(async (role) => {
+        const result = await executePolaris("listGrantsForCatalogRole", {
+          path_params: { catalogName, catalogRoleName: role.name }
+        });
+        const body = objectBody(result);
+        return [role.name, Array.isArray(body.grants) ? body.grants : []] as const;
+      })
+    );
+    setRoleGrants(Object.fromEntries(entries));
   }
 
   async function createCatalog() {
@@ -918,12 +1339,15 @@ function CatalogsView({
             <button
               key={catalog.name}
               className={selected?.name === catalog.name ? "resource-row selected" : "resource-row"}
-              onClick={() => setActiveCatalog(catalog.name)}
+              onClick={() => selectCatalogObject({ type: "catalog", catalog: catalog.name })}
             >
               <Database size={18} />
               <span>
                 <strong>{catalog.name}</strong>
-                <small>{catalog.type ?? "INTERNAL"} · {catalog.readOnly ? "read only" : "writable"}</small>
+                <small>
+                  {catalogContents[catalog.name]?.namespaces.length ?? 0} namespaces ·{" "}
+                  {catalogContents[catalog.name]?.namespaces.reduce((total, namespace) => total + namespace.tables.length, 0) ?? 0} tables
+                </small>
               </span>
             </button>
           ))}
@@ -954,6 +1378,95 @@ function CatalogsView({
                 Region: selected.storageConfigInfo?.region ?? ""
               }}
             />
+            {objectSelection && (
+              <section className="object-inspector">
+                <div className="section-title compact">
+                  <div>
+                    <h3>{selectionLabel(objectSelection)}</h3>
+                    <span>Storage and RBAC context for the selected object</span>
+                  </div>
+                  <button onClick={() => loadRoleGrants(selected.name)}>
+                    <RefreshCw size={16} /> RBAC
+                  </button>
+                </div>
+                <div className="object-context-grid">
+                  <div>
+                    <span>Storage Scope</span>
+                    <strong>Catalog storage</strong>
+                    <small>Inherited by namespace and table objects</small>
+                  </div>
+                  <div>
+                    <span>Base Location</span>
+                    <strong>{selected.properties?.["default-base-location"] ?? "not set"}</strong>
+                  </div>
+                  <div>
+                    <span>Endpoint</span>
+                    <strong>{selected.storageConfigInfo?.endpoint ?? "not set"}</strong>
+                  </div>
+                  <div>
+                    <span>Allowed Locations</span>
+                    <strong>
+                      {Array.isArray(selected.storageConfigInfo?.allowedLocations)
+                        ? selected.storageConfigInfo.allowedLocations.join(", ")
+                        : "not set"}
+                    </strong>
+                  </div>
+                </div>
+                <div className="section-title compact">
+                  <div>
+                    <h3>RBAC for this Object</h3>
+                    <span>Direct grants plus catalog or namespace grants that apply here</span>
+                  </div>
+                </div>
+                <div className="object-rbac-list">
+                  {objectGrantRows.map(({ roleName, grant, scope }) => (
+                    <div className="object-rbac-row" key={`${roleName}-${grantSummary(grant)}-${scope}`}>
+                      <ShieldCheck size={16} />
+                      <span>
+                        <strong>{roleName}</strong>
+                        <small>{scope} · {grantTargetLabel(grant)}</small>
+                      </span>
+                      <code>{grant.privilege ?? "unknown"}</code>
+                    </div>
+                  ))}
+                  {objectGrantRows.length === 0 && (
+                    <EmptyState label="No matching grants for this object" />
+                  )}
+                </div>
+              </section>
+            )}
+            <div className="catalog-object-tree">
+              <div className="section-title compact">
+                <div>
+                  <h3>Objects in this Catalog</h3>
+                  <span>
+                    {selectedContent?.loading
+                      ? "Loading live Polaris objects"
+                      : `${selectedContent?.namespaces.length ?? 0} namespaces · ${selectedTableCount} tables`}
+                  </span>
+                </div>
+                <button onClick={refreshCatalogs}>
+                  <RefreshCw size={16} /> Refresh
+                </button>
+              </div>
+              {selectedContent?.error && <div className="notice notice-error">{selectedContent.error}</div>}
+              {selectedContent && !selectedContent.loading ? (
+                <div className="catalog-object-list">
+                  {buildNamespaceNodes(selectedContent.namespaces).map((node) => (
+                    <CatalogDetailNamespaceNode
+                      key={node.path}
+                      catalogName={selected.name}
+                      node={node}
+                      selectedObject={objectSelection}
+                      selectCatalogObject={selectCatalogObject}
+                    />
+                  ))}
+                  {selectedContent.namespaces.length === 0 && <EmptyState label="No namespaces in this catalog" />}
+                </div>
+              ) : (
+                <EmptyState label="Loading namespaces and tables" />
+              )}
+            </div>
             <JsonPanel title="Storage Config" value={selected.storageConfigInfo ?? {}} />
             <div className="inline-form">
               <label>

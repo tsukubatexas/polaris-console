@@ -1,0 +1,10 @@
+replicaCount: 1
+
+config:
+  cookieSecure: false
+  allowedOrigins:
+    - http://localhost:8000
+  allowAnyTargetHost: true
+
+networkPolicy:
+  enabled: false

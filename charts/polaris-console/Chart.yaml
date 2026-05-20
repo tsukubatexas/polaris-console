@@ -1,0 +1,20 @@
+apiVersion: v2
+name: polaris-console
+description: Dynamic Apache Polaris web console with a hardened FastAPI backend.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+home: https://github.com/tsukubatexas/polaris-console
+sources:
+  - https://github.com/tsukubatexas/polaris-console
+keywords:
+  - apache-polaris
+  - iceberg
+  - catalog
+  - data-platform
+maintainers:
+  - name: tsukubatexas
+    url: https://github.com/tsukubatexas
+annotations:
+  artifacthub.io/category: integration-delivery
+  artifacthub.io/license: Apache-2.0

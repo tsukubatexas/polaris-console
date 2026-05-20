@@ -1,0 +1,94 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/tsukubatexas/polaris-console
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1000m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+networkPolicy:
+  enabled: true
+  ingress:
+    from: []
+  egress:
+    # Keep empty by default. Add explicit egress rules to your Polaris, OAuth,
+    # DNS, and observability endpoints in production.
+    extraRules: []
+
+session:
+  existingSecret: ""
+  secretKey: session-secret
+  secret: ""
+  ttlSeconds: 28800
+
+config:
+  requestTimeoutSeconds: 45
+  cookieSecure: true
+  allowInsecureTls: false
+  allowedOrigins: []
+  allowedTargetHosts: []
+  allowAnyTargetHost: false
+
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
