@@ -17,3 +17,4 @@ Run a weekly workflow that fetches the latest Polaris specs, regenerates operati
 - API drift is visible as a PR.
 - Generated UI coverage stays close to upstream Polaris.
 - The repair loop is bounded by `AGENT_MAX_ROUNDS` and still has to pass CI.
+- The loop must stay deterministic for unchanged upstream specs. Timestamp-only changes are not acceptable because they create noisy PRs.

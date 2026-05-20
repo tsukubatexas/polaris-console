@@ -16,5 +16,6 @@ frontend/dist/
 backend/app/generated/*.tmp
 .agent/
 .agentic/
+specs/
 .coverage
 htmlcov/

@@ -272,6 +272,15 @@ def main() -> int:
         return 1
 
     backend_output = ROOT / "backend" / "app" / "generated" / "operations.json"
+    if backend_output.exists():
+        existing = json.loads(backend_output.read_text(encoding="utf-8"))
+        if (
+            existing.get("polaris_release") == registry["polaris_release"]
+            and existing.get("source_url") == registry["source_url"]
+            and existing.get("operations") == registry["operations"]
+        ):
+            registry["generated_at"] = existing.get("generated_at", registry["generated_at"])
+
     backend_output.parent.mkdir(parents=True, exist_ok=True)
     backend_output.write_text(
         json.dumps(registry, indent=2, sort_keys=True) + "\n",
