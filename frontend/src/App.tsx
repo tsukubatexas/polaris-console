@@ -49,6 +49,43 @@ type NamedEntity = {
   properties?: Record<string, string>;
 };
 
+const CATALOG_PRIVILEGES = [
+  "CATALOG_MANAGE_ACCESS",
+  "CATALOG_MANAGE_CONTENT",
+  "CATALOG_MANAGE_METADATA",
+  "CATALOG_READ_PROPERTIES",
+  "CATALOG_WRITE_PROPERTIES",
+  "NAMESPACE_CREATE",
+  "TABLE_CREATE",
+  "TABLE_LIST",
+  "TABLE_READ_DATA",
+  "TABLE_WRITE_DATA"
+];
+
+const NAMESPACE_PRIVILEGES = [
+  "NAMESPACE_LIST",
+  "NAMESPACE_CREATE",
+  "NAMESPACE_READ_PROPERTIES",
+  "NAMESPACE_WRITE_PROPERTIES",
+  "TABLE_CREATE",
+  "TABLE_LIST",
+  "TABLE_READ_DATA",
+  "TABLE_WRITE_DATA",
+  "TABLE_MANAGE_STRUCTURE",
+  "TABLE_DROP"
+];
+
+const TABLE_PRIVILEGES = [
+  "TABLE_LIST",
+  "TABLE_READ_PROPERTIES",
+  "TABLE_WRITE_PROPERTIES",
+  "TABLE_READ_DATA",
+  "TABLE_WRITE_DATA",
+  "TABLE_FULL_METADATA",
+  "TABLE_MANAGE_STRUCTURE",
+  "TABLE_DROP"
+];
+
 const operations = operationRegistry.operations as unknown as Operation[];
 
 function methodClass(method: string) {
@@ -83,6 +120,16 @@ function rolesFromBody(response: OperationResponse): NamedEntity[] {
   const body = objectBody(response);
   const rawRoles = body.roles ?? body.catalogRoles ?? body.principalRoles;
   return Array.isArray(rawRoles) ? rawRoles : [];
+}
+
+function grantSummary(grant: AnyRecord) {
+  const target =
+    grant.type === "table"
+      ? `${Array.isArray(grant.namespace) ? grant.namespace.join(".") : ""}.${grant.tableName ?? ""}`
+      : grant.type === "namespace"
+        ? Array.isArray(grant.namespace) ? grant.namespace.join(".") : ""
+        : grant.type ?? "catalog";
+  return `${grant.type ?? "catalog"} · ${target} · ${grant.privilege ?? ""}`;
 }
 
 function operationCounts() {
@@ -224,8 +271,16 @@ export function App() {
     }
   }
 
-  const title = view === "overview" ? "Topology" : view[0].toUpperCase() + view.slice(1);
-  const viewLabel = view === "overview" ? "topology" : view;
+  const titleByView: Record<View, string> = {
+    overview: "Start",
+    catalogs: "Catalogs",
+    identity: "RBAC",
+    lakehouse: "Namespaces & Tables",
+    explorer: "API Explorer",
+    activity: "Activity"
+  };
+  const title = titleByView[view];
+  const viewLabel = title.toLowerCase();
   const hierarchicalView = view !== "explorer" && view !== "activity";
 
   return (
@@ -242,11 +297,11 @@ export function App() {
         </div>
         <nav>
           {[
-            ["overview", Activity, "Topology"],
+            ["overview", Activity, "Start"],
             ["catalogs", Database, "Catalogs"],
-            ["identity", UsersRound, "Identity"],
-            ["lakehouse", Table2, "Lakehouse"],
-            ["explorer", SquareTerminal, "Explorer"],
+            ["identity", UsersRound, "RBAC"],
+            ["lakehouse", Table2, "Tables"],
+            ["explorer", SquareTerminal, "API"],
             ["activity", GitPullRequestArrow, "Activity"]
           ].map(([key, Icon, label]) => (
             <button
@@ -285,11 +340,16 @@ export function App() {
           </div>
           <div className="top-actions">
             <span className="pill">
-              <ShieldCheck size={15} /> Bearer / OAuth2
+              <ShieldCheck size={15} /> {session.connected ? "Secure session" : "Not connected"}
             </span>
             <span className="pill">
-              <Braces size={15} /> {summary.count} operations
+              <Database size={15} /> {catalogs.length} catalogs
             </span>
+            {view === "explorer" && (
+              <span className="pill">
+                <Braces size={15} /> {summary.count} operations
+              </span>
+            )}
             <button
               onClick={() => {
                 api.session().then(setSession);
@@ -480,7 +540,7 @@ function PolarisTree({
               <div className="tree-leaves">
                 <button onClick={() => go("catalogs", catalog.name)}>
                   <ShieldCheck size={14} />
-                  <span>Storage & Roles</span>
+                  <span>Storage</span>
                 </button>
                 <button
                   className={activeView === "lakehouse" && activeCatalog === catalog.name ? "tree-active" : ""}
@@ -506,7 +566,7 @@ function PolarisTree({
       <details className="tree-section" open>
         <summary>
           <UsersRound size={16} />
-          <span>Identity</span>
+          <span>RBAC</span>
         </summary>
         <div className="tree-children">
           <button
@@ -516,7 +576,7 @@ function PolarisTree({
             <UsersRound size={16} />
             <span>
               <strong>Principals</strong>
-              <small>users and services</small>
+              <small>users and apps</small>
             </span>
           </button>
           <div className="tree-leaves">
@@ -526,7 +586,7 @@ function PolarisTree({
             </button>
             <button className={activeView === "identity" ? "tree-active" : ""} onClick={() => go("identity")}>
               <ShieldCheck size={14} />
-              <span>Catalog Grants</span>
+              <span>Catalog Roles</span>
             </button>
           </div>
         </div>
@@ -535,8 +595,8 @@ function PolarisTree({
       <button className="tree-node" onClick={() => go("explorer")}>
         <SquareTerminal size={16} />
         <span>
-          <strong>Explorer</strong>
-          <small>raw fallback</small>
+          <strong>Advanced API</strong>
+          <small>expert fallback</small>
         </span>
       </button>
     </aside>
@@ -568,10 +628,28 @@ function Overview({
   const last = activity[0];
   return (
     <div className="overview-grid">
+      <section className="core-grid">
+        {[
+          { title: "Catalogs", icon: Database, view: "catalogs" as View, detail: "Storage and catalog roles" },
+          { title: "RBAC", icon: UsersRound, view: "identity" as View, detail: "Principals, roles and grants" },
+          { title: "Namespaces & Tables", icon: Table2, view: "lakehouse" as View, detail: "Iceberg namespaces and tables" },
+          { title: "API Explorer", icon: SquareTerminal, view: "explorer" as View, detail: "Expert fallback" }
+        ].map((card) => {
+          const Icon = card.icon;
+          return (
+            <button key={card.title} className="core-card" onClick={() => setView(card.view)}>
+              <Icon size={24} />
+              <strong>{card.title}</strong>
+              <span>{card.detail}</span>
+            </button>
+          );
+        })}
+      </section>
+
       <section className="metric-row">
         <Metric label="Catalogs" value={catalogs.length} />
-        <Metric label="Management Ops" value={summary.services.management ?? 0} />
-        <Metric label="Lakehouse Ops" value={(summary.services.catalog ?? 0) + (summary.services.iceberg ?? 0)} />
+        <Metric label="RBAC Ops" value={summary.services.management ?? 0} />
+        <Metric label="Table Ops" value={(summary.services.catalog ?? 0) + (summary.services.iceberg ?? 0)} />
         <Metric label="Mutating Ops" value={summary.mutating} />
       </section>
 
@@ -579,7 +657,7 @@ function Overview({
         <div className="panel span-2">
           <div className="section-title">
             <div>
-              <h3>Catalog Estate</h3>
+              <h3>Catalogs</h3>
               <span>{session.connected ? "Live from Polaris" : "No active Polaris session"}</span>
             </div>
             <button onClick={onRefresh} disabled={!session.connected}>
@@ -592,7 +670,7 @@ function Overview({
               <button key={catalog.name} onClick={() => setView("catalogs")}>
                 <Database size={18} />
                 <strong>{catalog.name}</strong>
-                <span>{catalog.type ?? "CATALOG"}</span>
+                <span>{catalog.properties?.["default-base-location"] ?? catalog.type ?? "catalog"}</span>
               </button>
             ))}
             {catalogs.length === 0 && <EmptyState label="No catalogs loaded" />}
@@ -602,7 +680,7 @@ function Overview({
         <div className="panel">
           <div className="section-title">
             <div>
-              <h3>Last Call</h3>
+              <h3>Last Change</h3>
               <span>{last ? `${last.operation.id} · ${last.status_code}` : "No activity yet"}</span>
             </div>
           </div>
@@ -611,27 +689,9 @@ function Overview({
               {JSON.stringify(last.body, null, 2)}
             </pre>
           ) : (
-            <EmptyState label="Run a Polaris action" />
+            <EmptyState label="No changes yet" />
           )}
         </div>
-      </section>
-
-      <section className="core-grid">
-        {[
-          { title: "Catalogs", icon: Database, view: "catalogs" as View, detail: "Storage, roles, properties" },
-          { title: "Identity", icon: UsersRound, view: "identity" as View, detail: "Principals, roles, assignments" },
-          { title: "Lakehouse", icon: Table2, view: "lakehouse" as View, detail: "Namespaces and tables" },
-          { title: "Explorer", icon: SquareTerminal, view: "explorer" as View, detail: "Raw operation fallback" }
-        ].map((card) => {
-          const Icon = card.icon;
-          return (
-            <button key={card.title} className="core-card" onClick={() => setView(card.view)}>
-              <Icon size={24} />
-              <strong>{card.title}</strong>
-              <span>{card.detail}</span>
-            </button>
-          );
-        })}
       </section>
     </div>
   );
@@ -654,12 +714,15 @@ function CatalogsView({
 }) {
   const [roles, setRoles] = useState<NamedEntity[]>([]);
   const [message, setMessage] = useState<string | null>(null);
-  const [newCatalog, setNewCatalog] = useState({
-    name: `console_catalog_${Date.now()}`,
-    location: "s3://bucket123",
-    endpoint: "http://localhost:9000",
-    endpointInternal: "http://rustfs:9000",
-    region: "us-west-2"
+  const [newCatalog, setNewCatalog] = useState(() => {
+    const seed = `console_catalog_${Date.now()}`;
+    return {
+      name: seed,
+      location: `s3://${seed}`,
+      endpoint: "http://localhost:9000",
+      endpointInternal: "http://rustfs:9000",
+      region: "us-west-2"
+    };
   });
   const [propertyEdit, setPropertyEdit] = useState({ key: "owner", value: "platform" });
   const [roleName, setRoleName] = useState(`console_role_${Date.now()}`);
@@ -704,7 +767,7 @@ function CatalogsView({
     });
     setMessage(result.ok ? "Catalog created" : `Polaris HTTP ${result.status_code}`);
     await refreshCatalogs();
-    setActiveCatalog(newCatalog.name);
+    if (result.ok) setActiveCatalog(newCatalog.name);
   }
 
   async function updateCatalogProperty() {
@@ -843,7 +906,7 @@ function CatalogsView({
                 </div>
               </div>
               <div className="create-box">
-                <h3>Create Role</h3>
+                <h3>Create Catalog Role</h3>
                 <input value={roleName} onChange={(event) => setRoleName(event.target.value)} />
                 <button className="primary" onClick={createRole}>
                   <Plus size={16} /> Create Role
@@ -916,6 +979,13 @@ function IdentityView({
   const [newPrincipalRole, setNewPrincipalRole] = useState(`console_principal_role_${Date.now()}`);
   const [message, setMessage] = useState<string | null>(null);
   const [credentials, setCredentials] = useState<AnyRecord | null>(null);
+  const [grantTarget, setGrantTarget] = useState<"catalog" | "namespace" | "table">("catalog");
+  const [grantNamespace, setGrantNamespace] = useState("");
+  const [grantTable, setGrantTable] = useState("");
+  const [grantPrivilege, setGrantPrivilege] = useState("CATALOG_MANAGE_CONTENT");
+  const [grantNamespaces, setGrantNamespaces] = useState<string[]>([]);
+  const [grantTables, setGrantTables] = useState<string[]>([]);
+  const [grants, setGrants] = useState<AnyRecord[]>([]);
 
   useEffect(() => {
     if (session.connected) refreshIdentity();
@@ -931,6 +1001,31 @@ function IdentityView({
     if (selectedCatalog) loadCatalogRoles(selectedCatalog);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCatalog]);
+
+  useEffect(() => {
+    if (selectedCatalog) loadGrantNamespaces(selectedCatalog);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCatalog]);
+
+  useEffect(() => {
+    if (selectedCatalogRole && selectedCatalog) loadGrants(selectedCatalog, selectedCatalogRole);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCatalogRole, selectedCatalog]);
+
+  useEffect(() => {
+    if (selectedCatalog && grantNamespace) loadGrantTables(grantNamespace);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCatalog, grantNamespace]);
+
+  useEffect(() => {
+    const privileges =
+      grantTarget === "catalog"
+        ? CATALOG_PRIVILEGES
+        : grantTarget === "namespace"
+          ? NAMESPACE_PRIVILEGES
+          : TABLE_PRIVILEGES;
+    if (!privileges.includes(grantPrivilege)) setGrantPrivilege(privileges[0]);
+  }, [grantPrivilege, grantTarget]);
 
   async function refreshIdentity() {
     const [principalsResult, rolesResult] = await Promise.all([
@@ -952,7 +1047,46 @@ function IdentityView({
     });
     const roles = rolesFromBody(result);
     setCatalogRoles(roles);
-    if (!selectedCatalogRole && roles.length) setSelectedCatalogRole(roles[0].name);
+    if (roles.length && !roles.some((role) => role.name === selectedCatalogRole)) {
+      setSelectedCatalogRole(roles[0].name);
+    }
+  }
+
+  async function loadGrantNamespaces(catalogName: string) {
+    const result = await executePolaris("iceberg_listNamespaces", {
+      path_params: { prefix: catalogName }
+    });
+    const body = objectBody(result);
+    const next = Array.isArray(body.namespaces) ? body.namespaces.map(namespaceName) : [];
+    setGrantNamespaces(next);
+    if (next.length && !next.includes(grantNamespace)) setGrantNamespace(next[0]);
+    if (!next.length) setGrantNamespace("");
+  }
+
+  async function loadGrantTables(namespaceNameValue: string) {
+    if (!namespaceNameValue) {
+      setGrantTables([]);
+      setGrantTable("");
+      return;
+    }
+    const result = await executePolaris("iceberg_listTables", {
+      path_params: { prefix: selectedCatalog, namespace: namespaceNameValue }
+    });
+    const body = objectBody(result);
+    const next = Array.isArray(body.identifiers)
+      ? body.identifiers.map((item: AnyRecord) => String(item.name ?? item.table ?? ""))
+      : [];
+    setGrantTables(next.filter(Boolean));
+    if (next.length && !next.includes(grantTable)) setGrantTable(next[0]);
+    if (!next.length) setGrantTable("");
+  }
+
+  async function loadGrants(catalogName: string, catalogRoleName: string) {
+    const result = await executePolaris("listGrantsForCatalogRole", {
+      path_params: { catalogName, catalogRoleName }
+    });
+    const body = objectBody(result);
+    setGrants(Array.isArray(body.grants) ? body.grants : []);
   }
 
   async function createPrincipal() {
@@ -1004,13 +1138,139 @@ function IdentityView({
       path_params: { principalRoleName: selectedPrincipalRole, catalogName: selectedCatalog },
       body: { catalogRole: { name: selectedCatalogRole } }
     });
-    setMessage(result.ok ? "Catalog role assigned" : `Polaris HTTP ${result.status_code}`);
+    setMessage(result.ok ? "Catalog role granted" : `Polaris HTTP ${result.status_code}`);
+  }
+
+  async function grantPrivilegeToCatalogRole() {
+    if (!selectedCatalog || !selectedCatalogRole) return;
+    if (grantTarget !== "catalog" && !grantNamespace) return;
+    if (grantTarget === "table" && !grantTable) return;
+    const grant =
+      grantTarget === "catalog"
+        ? { type: "catalog", privilege: grantPrivilege }
+        : grantTarget === "namespace"
+          ? { type: "namespace", namespace: grantNamespace.split(".").filter(Boolean), privilege: grantPrivilege }
+          : {
+              type: "table",
+              namespace: grantNamespace.split(".").filter(Boolean),
+              tableName: grantTable,
+              privilege: grantPrivilege
+            };
+    const result = await executePolaris("addGrantToCatalogRole", {
+      path_params: { catalogName: selectedCatalog, catalogRoleName: selectedCatalogRole },
+      body: { grant }
+    });
+    setMessage(result.ok ? "Privilege granted to catalog role" : `Polaris HTTP ${result.status_code}`);
+    if (result.ok) await loadGrants(selectedCatalog, selectedCatalogRole);
   }
 
   if (!session.connected) return <ConnectRequired openConnect={openConnect} />;
 
   return (
     <div className="domain-layout identity-layout">
+      <section className="detail-panel span-all rbac-flow">
+        <div className="section-title">
+          <div>
+            <h3>RBAC Assignment</h3>
+            <span>Principal to Principal Role to Catalog to Catalog Role</span>
+          </div>
+        </div>
+        {message && <div className="notice">{message}</div>}
+        <div className="assignment-grid">
+          <label>
+            <span>Principal</span>
+            <select value={selectedPrincipal} onChange={(event) => setSelectedPrincipal(event.target.value)}>
+              {principals.map((principal) => <option key={principal.name}>{principal.name}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Principal Role</span>
+            <select value={selectedPrincipalRole} onChange={(event) => setSelectedPrincipalRole(event.target.value)}>
+              {principalRoles.map((role) => <option key={role.name}>{role.name}</option>)}
+            </select>
+          </label>
+          <button className="primary" onClick={assignPrincipalRole}>
+            <Save size={16} /> Assign Role
+          </button>
+          <label>
+            <span>Catalog</span>
+            <select
+              value={selectedCatalog}
+              onChange={(event) => {
+                setSelectedCatalog(event.target.value);
+                setActiveCatalog(event.target.value);
+              }}
+            >
+              {catalogs.map((catalog) => <option key={catalog.name}>{catalog.name}</option>)}
+            </select>
+          </label>
+          <label>
+            <span>Catalog Role</span>
+            <select value={selectedCatalogRole} onChange={(event) => setSelectedCatalogRole(event.target.value)}>
+              {catalogRoles.map((role) => <option key={role.name}>{role.name}</option>)}
+            </select>
+          </label>
+          <button className="primary" onClick={assignCatalogRole}>
+            <ShieldCheck size={16} /> Grant Catalog Role
+          </button>
+        </div>
+        <div className="section-title compact">
+          <div>
+            <h3>Catalog Role Privileges</h3>
+            <span>Give a catalog role access to a catalog, namespace, or table</span>
+          </div>
+          <button disabled={!selectedCatalogRole} onClick={() => loadGrants(selectedCatalog, selectedCatalogRole)}>
+            <RefreshCw size={16} /> Grants
+          </button>
+        </div>
+        <div className="grant-grid">
+          <label>
+            <span>Target</span>
+            <select value={grantTarget} onChange={(event) => setGrantTarget(event.target.value as "catalog" | "namespace" | "table")}>
+              <option value="catalog">Catalog</option>
+              <option value="namespace">Namespace</option>
+              <option value="table">Table</option>
+            </select>
+          </label>
+          {grantTarget !== "catalog" && (
+            <label>
+              <span>Namespace</span>
+              <select value={grantNamespace} onChange={(event) => setGrantNamespace(event.target.value)}>
+                {grantNamespaces.map((item) => <option key={item}>{item}</option>)}
+              </select>
+            </label>
+          )}
+          {grantTarget === "table" && (
+            <label>
+              <span>Table</span>
+              <select value={grantTable} onChange={(event) => setGrantTable(event.target.value)}>
+                {grantTables.map((item) => <option key={item}>{item}</option>)}
+              </select>
+            </label>
+          )}
+          <label>
+            <span>Privilege</span>
+            <select value={grantPrivilege} onChange={(event) => setGrantPrivilege(event.target.value)}>
+              {(grantTarget === "catalog"
+                ? CATALOG_PRIVILEGES
+                : grantTarget === "namespace"
+                  ? NAMESPACE_PRIVILEGES
+                  : TABLE_PRIVILEGES
+              ).map((privilege) => <option key={privilege}>{privilege}</option>)}
+            </select>
+          </label>
+          <button className="primary" onClick={grantPrivilegeToCatalogRole}>
+            <ShieldCheck size={16} /> Grant Privilege
+          </button>
+        </div>
+        <div className="grant-list">
+          {grants.map((grant, index) => (
+            <div key={`${grant.type}-${grant.privilege}-${index}`}>{grantSummary(grant)}</div>
+          ))}
+          {grants.length === 0 && <EmptyState label="No privileges loaded for this catalog role" />}
+        </div>
+      </section>
+
       <section className="detail-panel">
         <div className="section-title">
           <div>
@@ -1021,7 +1281,6 @@ function IdentityView({
             <RefreshCw size={16} /> Refresh
           </button>
         </div>
-        {message && <div className="notice">{message}</div>}
         <div className="entity-stack">
           {principals.map((principal) => (
             <div
@@ -1080,52 +1339,6 @@ function IdentityView({
         </div>
       </section>
 
-      <section className="detail-panel span-all">
-        <div className="section-title">
-          <div>
-            <h3>Assignments</h3>
-            <span>Principal roles and catalog roles</span>
-          </div>
-        </div>
-        <div className="assignment-grid">
-          <label>
-            <span>Principal</span>
-            <select value={selectedPrincipal} onChange={(event) => setSelectedPrincipal(event.target.value)}>
-              {principals.map((principal) => <option key={principal.name}>{principal.name}</option>)}
-            </select>
-          </label>
-          <label>
-            <span>Principal Role</span>
-            <select value={selectedPrincipalRole} onChange={(event) => setSelectedPrincipalRole(event.target.value)}>
-              {principalRoles.map((role) => <option key={role.name}>{role.name}</option>)}
-            </select>
-          </label>
-          <button className="primary" onClick={assignPrincipalRole}>
-            <Save size={16} /> Assign Role
-          </button>
-          <label>
-            <span>Catalog</span>
-            <select
-              value={selectedCatalog}
-              onChange={(event) => {
-                setSelectedCatalog(event.target.value);
-                setActiveCatalog(event.target.value);
-              }}
-            >
-              {catalogs.map((catalog) => <option key={catalog.name}>{catalog.name}</option>)}
-            </select>
-          </label>
-          <label>
-            <span>Catalog Role</span>
-            <select value={selectedCatalogRole} onChange={(event) => setSelectedCatalogRole(event.target.value)}>
-              {catalogRoles.map((role) => <option key={role.name}>{role.name}</option>)}
-            </select>
-          </label>
-          <button className="primary" onClick={assignCatalogRole}>
-            <ShieldCheck size={16} /> Grant Catalog Role
-          </button>
-        </div>
-      </section>
     </div>
   );
 }
@@ -1307,13 +1520,13 @@ function LakehouseView({
         <div className="inline-form one-line">
           <input value={newNamespace} onChange={(event) => setNewNamespace(event.target.value)} />
           <button className="primary" disabled={busyKey === "iceberg_createNamespace"} onClick={createNamespace}>
-            <Plus size={16} /> Namespace
+            <Plus size={16} /> Create Namespace
           </button>
         </div>
         <div className="table-toolbar">
           <input value={tableName} onChange={(event) => setTableName(event.target.value)} />
           <button className="primary" disabled={!namespace || busyKey === "iceberg_createTable"} onClick={createTable}>
-            <Plus size={16} /> Table
+            <Plus size={16} /> Create Table
           </button>
           <button disabled={!namespace} onClick={() => loadTables()}>
             <RefreshCw size={16} /> Tables

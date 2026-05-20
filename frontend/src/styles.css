@@ -644,7 +644,8 @@ nav button.nav-active {
 .inline-form input,
 .table-toolbar input,
 .create-box input,
-.assignment-grid select {
+.assignment-grid select,
+.grant-grid select {
   width: 100%;
   min-width: 0;
   height: 40px;
@@ -721,7 +722,8 @@ nav button.nav-active {
 }
 
 .kv-grid span,
-.assignment-grid span {
+.assignment-grid span,
+.grant-grid span {
   display: block;
   margin-bottom: 6px;
   color: #667084;
@@ -826,6 +828,50 @@ nav button.nav-active {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   gap: 12px;
   align-items: end;
+}
+
+.grant-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  gap: 12px;
+  align-items: end;
+  margin-top: 14px;
+}
+
+.grant-grid button {
+  display: inline-flex;
+  min-height: 40px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+
+.grant-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.grant-list > div:not(.empty-state) {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #d8e5e4;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #334155;
+  padding: 9px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.rbac-flow {
+  order: -1;
+  border-color: #b9d7d5;
+  background: #f7fbfb;
 }
 
 .connect-required,
@@ -1247,7 +1293,8 @@ nav button.nav-active {
   .identity-layout,
   .lakehouse-layout,
   .split-panel,
-  .assignment-grid {
+  .assignment-grid,
+  .grant-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1327,7 +1374,8 @@ nav button.nav-active {
   .kv-grid,
   .inline-form,
   .inline-form.one-line,
-  .table-toolbar {
+  .table-toolbar,
+  .grant-grid {
     grid-template-columns: 1fr;
   }
 
