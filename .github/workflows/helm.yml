@@ -61,7 +61,7 @@ jobs:
           touch "$worktree/.nojekyll"
 
           cd "$worktree"
-          git add .nojekyll charts
+          git add .nojekyll artifacthub-repo.yml charts
           if git diff --cached --quiet; then
             echo "No Helm repository changes to publish."
             exit 0
