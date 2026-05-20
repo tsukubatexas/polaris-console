@@ -43,8 +43,11 @@ jobs:
           if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
             git worktree add "$worktree" gh-pages
           else
-            git worktree add --orphan "$worktree" gh-pages
-            rm -rf "$worktree"/*
+            git worktree add --detach "$worktree"
+            cd "$worktree"
+            git checkout --orphan gh-pages
+            find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+            cd -
           fi
 
           mkdir -p "$worktree/charts"
