@@ -6,7 +6,31 @@ entries:
       artifacthub.io/license: Apache-2.0
     apiVersion: v2
     appVersion: 0.1.0
-    created: "2026-05-21T10:23:08.184428979Z"
+    created: "2026-05-21T10:28:54.477454185Z"
+    description: Dynamic Apache Polaris web console with a hardened FastAPI backend.
+    digest: 6f2289a3892acdc82ad4a1b7ca57d8778a79ef0ad443b080cfb090e3a09f6c74
+    home: https://github.com/tsukubatexas/polaris-console
+    keywords:
+    - apache-polaris
+    - iceberg
+    - catalog
+    - data-platform
+    maintainers:
+    - name: tsukubatexas
+      url: https://github.com/tsukubatexas
+    name: polaris-console
+    sources:
+    - https://github.com/tsukubatexas/polaris-console
+    type: application
+    urls:
+    - https://raw.githubusercontent.com/tsukubatexas/polaris-console/gh-pages/charts/polaris-console-0.1.4.tgz
+    version: 0.1.4
+  - annotations:
+      artifacthub.io/category: integration-delivery
+      artifacthub.io/license: Apache-2.0
+    apiVersion: v2
+    appVersion: 0.1.0
+    created: "2026-05-21T10:28:54.476885877Z"
     description: Dynamic Apache Polaris web console with a hardened FastAPI backend.
     digest: 6db09ea2a2962b6a53081a49abe069cce66daf18da9f767944439b3080e5c8cf
     home: https://github.com/tsukubatexas/polaris-console
@@ -30,7 +54,7 @@ entries:
       artifacthub.io/license: Apache-2.0
     apiVersion: v2
     appVersion: 0.1.0
-    created: "2026-05-21T10:23:08.183661123Z"
+    created: "2026-05-21T10:28:54.476243346Z"
     description: Dynamic Apache Polaris web console with a hardened FastAPI backend.
     digest: a744f01094d20d3b00a7ad0b41a1786fcac6837555d34f1611f571d7ba9697f8
     home: https://github.com/tsukubatexas/polaris-console
@@ -54,7 +78,7 @@ entries:
       artifacthub.io/license: Apache-2.0
     apiVersion: v2
     appVersion: 0.1.0
-    created: "2026-05-21T10:23:08.183005196Z"
+    created: "2026-05-21T10:28:54.475763371Z"
     description: Dynamic Apache Polaris web console with a hardened FastAPI backend.
     digest: d4aa91426066934931cfa7bfcfeef301252d675b2446d1e8cb53f8f5aecefbb4
     home: https://github.com/tsukubatexas/polaris-console
@@ -78,7 +102,7 @@ entries:
       artifacthub.io/license: Apache-2.0
     apiVersion: v2
     appVersion: 0.1.0
-    created: "2026-05-21T10:23:08.182332919Z"
+    created: "2026-05-21T10:28:54.475248844Z"
     description: Dynamic Apache Polaris web console with a hardened FastAPI backend.
     digest: 71da19bf9cc382dcac2023ffdcf46d3ac5e0026c4a440b3dab823895417cc539
     home: https://github.com/tsukubatexas/polaris-console
@@ -97,4 +121,4 @@ entries:
     urls:
     - https://raw.githubusercontent.com/tsukubatexas/polaris-console/gh-pages/charts/polaris-console-0.1.0.tgz
     version: 0.1.0
-generated: "2026-05-21T10:23:08.181616249Z"
+generated: "2026-05-21T10:28:54.474707666Z"
