@@ -21,6 +21,24 @@
         },
         "tag": {
           "type": "string"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^$|^sha256:[a-f0-9]{64}$"
+        }
+      }
+    },
+    "namespace": {
+      "type": "object",
+      "properties": {
+        "create": {
+          "type": "boolean"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     },
@@ -231,6 +249,41 @@
         },
         "capabilities": {
           "type": "object"
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "properties": {
+        "enforceRestrictedPodSecurity": {
+          "type": "boolean"
+        },
+        "requireServiceAccountTokenDisabled": {
+          "type": "boolean"
+        },
+        "requireReadOnlyRootFilesystem": {
+          "type": "boolean"
+        },
+        "requireClusterIPService": {
+          "type": "boolean"
+        },
+        "requireCookieSecure": {
+          "type": "boolean"
+        },
+        "requireNetworkPolicy": {
+          "type": "boolean"
+        },
+        "disallowOpenEgress": {
+          "type": "boolean"
+        },
+        "requireImageDigest": {
+          "type": "boolean"
+        },
+        "requireExternalSessionSecret": {
+          "type": "boolean"
+        },
+        "requireIngressTls": {
+          "type": "boolean"
         }
       }
     },

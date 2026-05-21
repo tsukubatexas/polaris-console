@@ -158,13 +158,30 @@ Chart security defaults:
 - Runs as UID/GID `10001`, non-root, with `allowPrivilegeEscalation=false`.
 - Drops all Linux capabilities and uses `RuntimeDefault` seccomp.
 - Uses read-only root filesystem with an explicit `/tmp` `emptyDir`.
-- Creates or reuses a Kubernetes Secret for the backend session secret.
+- Supports immutable image digest pinning with `image.digest`; the secure profile requires it.
+- Reuses an externally managed Kubernetes Secret for the backend session secret; use Key Vault CSI, External Secrets, or the platform secret flow in production.
 - Supports AWS IRSA, AWS EKS Pod Identity, Azure Workload Identity, and GKE Workload Identity Federation without storing cloud credentials in the chart.
 - Kubernetes RBAC is opt-in and empty by default; enable it only with explicit least-privilege rules.
 - Sets `POLARIS_CONSOLE_COOKIE_SECURE=true` by default.
 - Requires `POLARIS_CONSOLE_ALLOWED_TARGET_HOSTS` unless local development mode is explicit.
-- Enables a NetworkPolicy by default; production deployments should add explicit egress rules for Polaris, OAuth, DNS, and observability endpoints.
+- Enables a NetworkPolicy by default; the secure profile rejects open `0.0.0.0/0` and `::/0` egress.
+- Can create a namespace with Kubernetes Pod Security Admission labels set to `restricted`.
 - Ships a Helm `values.schema.json` so invalid values fail early.
+- Publishes container images with BuildKit SBOM and provenance attestations.
+
+The hardened CI profile is intentionally stricter than local defaults:
+
+```bash
+helm template polaris-console charts/polaris-console \
+  --namespace polaris-console \
+  -f charts/polaris-console/ci/values-secure.yaml \
+  > .helm-rendered/secure.yaml
+scripts/security_manifest_checks.sh .helm-rendered/secure.yaml
+```
+
+This is not a standalone ISO/IEC 27001 or NIST certification claim. It is technical evidence that supports those programs: least privilege, immutable releases, restricted pods, explicit egress, managed secrets, TLS requirements, and repeatable CI checks.
+
+For clusters without FQDN-aware network policy, keep the pod egress closed and either use bearer mode with externally brokered tokens or route OAuth2 calls through an approved enterprise egress proxy. The secure profile must not need `0.0.0.0/0` pod egress.
 
 Cloud identity examples:
 
