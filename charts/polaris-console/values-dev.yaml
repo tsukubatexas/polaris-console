@@ -8,3 +8,8 @@ config:
 
 networkPolicy:
   enabled: false
+
+security:
+  requireCookieSecure: false
+  requireNetworkPolicy: false
+  disallowOpenEgress: false

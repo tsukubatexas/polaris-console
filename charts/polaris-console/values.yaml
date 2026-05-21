@@ -4,10 +4,23 @@ image:
   repository: ghcr.io/tsukubatexas/polaris-console
   pullPolicy: IfNotPresent
   tag: ""
+  # Set to an immutable digest such as sha256:... for production releases.
+  # When present, the rendered image becomes repository@digest.
+  digest: ""
 
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+namespace:
+  create: false
+  labels:
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: latest
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: latest
 
 serviceAccount:
   create: true
@@ -72,6 +85,20 @@ securityContext:
   capabilities:
     drop:
       - ALL
+
+security:
+  # These checks keep the production profile fail-closed while allowing
+  # values-dev.yaml to opt out explicitly for local rendering.
+  enforceRestrictedPodSecurity: true
+  requireServiceAccountTokenDisabled: true
+  requireReadOnlyRootFilesystem: true
+  requireClusterIPService: true
+  requireCookieSecure: true
+  requireNetworkPolicy: true
+  disallowOpenEgress: true
+  requireImageDigest: false
+  requireExternalSessionSecret: false
+  requireIngressTls: false
 
 service:
   type: ClusterIP

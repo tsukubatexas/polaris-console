@@ -54,6 +54,15 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 {{- end -}}
 
+{{- define "polaris-console.image" -}}
+{{- $tag := .Values.image.tag | default .Chart.AppVersion -}}
+{{- if .Values.image.digest -}}
+{{- printf "%s@%s" .Values.image.repository .Values.image.digest -}}
+{{- else -}}
+{{- printf "%s:%s" .Values.image.repository $tag -}}
+{{- end -}}
+{{- end -}}
+
 {{- define "polaris-console.sessionSecret" -}}
 {{- $secretName := include "polaris-console.secretName" . -}}
 {{- $secretKey := .Values.session.secretKey -}}
@@ -134,6 +143,70 @@ azure.workload.identity/skip-containers: {{ join ";" . | quote }}
 {{- end -}}
 {{- if and .Values.config.allowInsecureTls (not .Values.config.allowAnyTargetHost) -}}
 {{- fail "config.allowInsecureTls=true is only allowed together with explicit local-development mode config.allowAnyTargetHost=true." -}}
+{{- end -}}
+{{- with .Values.image.digest -}}
+{{- if not (regexMatch "^sha256:[a-f0-9]{64}$" .) -}}
+{{- fail "image.digest must be an immutable sha256 digest such as sha256:0123..." -}}
+{{- end -}}
+{{- end -}}
+{{- if .Values.security.requireImageDigest -}}
+{{- if empty .Values.image.digest -}}
+{{- fail "security.requireImageDigest=true requires image.digest to pin the container immutably." -}}
+{{- end -}}
+{{- end -}}
+{{- if .Values.security.requireExternalSessionSecret -}}
+{{- if empty .Values.session.existingSecret -}}
+{{- fail "security.requireExternalSessionSecret=true requires session.existingSecret from Key Vault, External Secrets, or another managed secret flow." -}}
+{{- end -}}
+{{- if .Values.session.secret -}}
+{{- fail "Do not set session.secret when security.requireExternalSessionSecret=true." -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.security.requireNetworkPolicy (not .Values.networkPolicy.enabled) -}}
+{{- fail "security.requireNetworkPolicy=true requires networkPolicy.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.security.requireIngressTls .Values.ingress.enabled (empty .Values.ingress.tls) -}}
+{{- fail "security.requireIngressTls=true requires ingress.tls when ingress.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.security.requireClusterIPService (ne .Values.service.type "ClusterIP") -}}
+{{- fail "security.requireClusterIPService=true requires service.type=ClusterIP; expose through a TLS ingress or gateway." -}}
+{{- end -}}
+{{- if and .Values.security.requireCookieSecure (not .Values.config.cookieSecure) -}}
+{{- fail "security.requireCookieSecure=true requires config.cookieSecure=true." -}}
+{{- end -}}
+{{- if and .Values.security.requireServiceAccountTokenDisabled .Values.serviceAccount.automount -}}
+{{- fail "security.requireServiceAccountTokenDisabled=true requires serviceAccount.automount=false." -}}
+{{- end -}}
+{{- if .Values.security.requireReadOnlyRootFilesystem -}}
+{{- if not .Values.securityContext.readOnlyRootFilesystem -}}
+{{- fail "security.requireReadOnlyRootFilesystem=true requires securityContext.readOnlyRootFilesystem=true." -}}
+{{- end -}}
+{{- end -}}
+{{- if .Values.security.enforceRestrictedPodSecurity -}}
+{{- if not .Values.podSecurityContext.runAsNonRoot -}}
+{{- fail "security.enforceRestrictedPodSecurity=true requires podSecurityContext.runAsNonRoot=true." -}}
+{{- end -}}
+{{- if not .Values.podSecurityContext.runAsUser -}}
+{{- fail "security.enforceRestrictedPodSecurity=true requires a non-zero podSecurityContext.runAsUser." -}}
+{{- end -}}
+{{- if ne (default "" .Values.podSecurityContext.seccompProfile.type) "RuntimeDefault" -}}
+{{- fail "security.enforceRestrictedPodSecurity=true requires podSecurityContext.seccompProfile.type=RuntimeDefault." -}}
+{{- end -}}
+{{- if .Values.securityContext.allowPrivilegeEscalation -}}
+{{- fail "security.enforceRestrictedPodSecurity=true requires securityContext.allowPrivilegeEscalation=false." -}}
+{{- end -}}
+{{- if not (has "ALL" (default (list) .Values.securityContext.capabilities.drop)) -}}
+{{- fail "security.enforceRestrictedPodSecurity=true requires securityContext.capabilities.drop to include ALL." -}}
+{{- end -}}
+{{- end -}}
+{{- if and .Values.security.disallowOpenEgress .Values.networkPolicy.enabled -}}
+{{- range $ruleIndex, $rule := .Values.networkPolicy.egress.extraRules -}}
+{{- range $toIndex, $to := $rule.to -}}
+{{- if and $to.ipBlock (or (eq $to.ipBlock.cidr "0.0.0.0/0") (eq $to.ipBlock.cidr "::/0")) -}}
+{{- fail (printf "security.disallowOpenEgress=true forbids networkPolicy.egress.extraRules[%d].to[%d].ipBlock.cidr=%s." $ruleIndex $toIndex $to.ipBlock.cidr) -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
 {{- end -}}
 {{- $provider := default "none" .Values.cloud.provider -}}
 {{- if not (has $provider (list "none" "aws" "azure" "gcp")) -}}

@@ -23,9 +23,12 @@ The chart deliberately fails to render unless `config.allowedTargetHosts` is set
 - Disables privilege escalation.
 - Uses a read-only root filesystem.
 - Uses `RuntimeDefault` seccomp.
-- Stores the backend session secret in a Kubernetes Secret.
+- Supports immutable image digest pinning through `image.digest`.
+- Reuses externally managed session secrets through `session.existingSecret`.
 - Enables `POLARIS_CONSOLE_COOKIE_SECURE=true` by default.
 - Enables NetworkPolicy by default.
+- Can create a namespace labelled for Kubernetes Pod Security Admission `restricted`.
+- Validates the secure profile so production renders fail if image digest, TLS, external secret, restricted pod settings, or network policy are missing.
 
 ## Cloud AuthN/AuthZ
 
@@ -60,6 +63,16 @@ References:
 Set at least:
 
 ```yaml
+image:
+  digest: sha256:...
+namespace:
+  create: true
+session:
+  existingSecret: polaris-console-session
+security:
+  requireImageDigest: true
+  requireExternalSessionSecret: true
+  requireIngressTls: true
 config:
   allowedOrigins:
     - https://polaris-console.example.com
@@ -79,7 +92,19 @@ networkPolicy:
             port: 443
 ```
 
-Use `session.existingSecret` for externally managed secrets.
+Create `polaris-console-session` with Azure Key Vault CSI, External Secrets, Sealed Secrets, or your platform secret flow before installing the secure profile. The chart references that Secret but does not own its lifecycle.
+
+On AKS with the standard `azure` network policy engine, Kubernetes NetworkPolicy cannot allow egress by FQDN. For OAuth2 client credentials mode, send outbound HTTPS through an enterprise firewall or HTTP proxy and allow only that proxy destination. If no controlled egress path exists, use bearer mode with a token obtained outside the pod so the console pod only needs internal Polaris and DNS egress.
+
+Run the same security render used in CI:
+
+```bash
+helm template polaris-console charts/polaris-console \
+  --namespace polaris-console \
+  -f charts/polaris-console/ci/values-secure.yaml \
+  > .helm-rendered/secure.yaml
+scripts/security_manifest_checks.sh .helm-rendered/secure.yaml
+```
 
 ## Local Development
 
